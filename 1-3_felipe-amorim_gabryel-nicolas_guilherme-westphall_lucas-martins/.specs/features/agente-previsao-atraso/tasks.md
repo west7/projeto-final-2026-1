@@ -52,9 +52,9 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] Backend has a reproducible way to install/run.
-- [ ] Test command is documented.
-- [ ] Health or smoke module can be imported.
+- [x] Backend has a reproducible way to install/run.
+- [x] Test command is documented.
+- [x] Health or smoke module can be imported.
 
 **Tests:** setup/build
 **Gate:** planned backend gate
