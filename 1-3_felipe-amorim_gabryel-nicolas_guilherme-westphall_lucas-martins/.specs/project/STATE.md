@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-09
-**Current Work:** agente-previsao-atraso - executing (Phase 1 complete, Phase 2 T4 complete, T5 next)
+**Current Work:** agente-previsao-atraso - executing (Phase 2 T5 complete, T6 next)
 
 ---
 
@@ -109,14 +109,15 @@
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 2 (Agent Core and Evaluation) in progress — T1, T2, T3, T4 done. Next: T5.
+**Phase/Task:** Phase 2 (Agent Core and Evaluation) in progress — T1, T2, T3, T4, T5 done. Next: T6.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
 - T3 `4ab224a` — `backend/app/data_prep.py`: `build_order_features()`/`load_prepared_features()`, stdlib-only, delayed target, leakage excluded, aggregates. 7 tests. Real-data smoke: 96,470 delivered / 8.112% delayed (matches L-001).
 - T4 current branch — `backend/app/risk_tool.py`: `HistoricalRiskTool`/`estimate_delay_risk()`, fallback hierarchy, risk score/level/confidence and factors. 5 tests.
-**Test state:** 29 passed, 0 failed (`cd backend && ./.venv/bin/pytest`).
-**Next step:** T5 — explanation/action policy (`backend/app/explanation.py`): deterministic explanation, recommended action by risk/confidence, output guardrail for missing evidence. Depends on T4 (done). Then T6, T7.
+- T5 current branch — `backend/app/explanation.py`: deterministic explanation/action policy, low-confidence human review and output guardrail for missing evidence. 10 tests.
+**Test state:** 39 passed, 0 failed (`cd backend && ./.venv/bin/pytest`).
+**Next step:** T6 — agent orchestration (`backend/app/agent.py`): combine risk tool, explanation/action policy, output guardrails, fallback events and latency telemetry. Depends on T5 (done). Then T7/T8.
 **Blockers:** none active on Phase 2. B-001 (dataset license) still open for report.
 **Uncommitted files:** local untracked HTML draft remains intentionally outside commits.
 **Branch:** main.

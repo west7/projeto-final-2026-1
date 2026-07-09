@@ -150,10 +150,10 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] Explanation cites evidence fields and sample size.
-- [ ] Action differs by risk level and confidence.
-- [ ] Low-confidence cases recommend human review.
-- [ ] Output guardrail rejects missing evidence.
+- [x] Explanation cites evidence fields and sample size.
+- [x] Action differs by risk level and confidence.
+- [x] Low-confidence cases recommend human review.
+- [x] Output guardrail rejects missing evidence.
 
 **Tests:** unit
 **Gate:** backend quick gate
