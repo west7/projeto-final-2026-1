@@ -44,7 +44,7 @@
 
 ## Comments/Documentation
 
-**Style:** Current code has no inline comments. Project context is documented in Markdown and static HTML.
+**Style:** Current code has no inline comments. Project context is documented in Markdown.
 
 ## Implications for New Work
 

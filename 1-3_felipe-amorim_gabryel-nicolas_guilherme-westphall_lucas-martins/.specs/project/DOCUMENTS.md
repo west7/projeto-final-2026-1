@@ -19,7 +19,7 @@
 
 | Document | Recommendation | Reason |
 | --- | --- | --- |
-| `projeto_agente_atraso_visao_geral.html` | Optional removal after review | Conteudo foi absorvido por `PROJECT.md`, `spec.md`, `design.md`, `tasks.md` e `STATE.md`. Hoje funciona apenas como rascunho visual/historico. |
+| None | - | Superseded drafts should not be referenced by committed docs unless they are also committed. |
 
 ## Not Documentation
 
@@ -29,4 +29,4 @@
 
 ## Cleanup Rule
 
-Do not delete superseded files until the group confirms they are no longer useful for presentation or report writing. When removed, use a dedicated commit such as `chore(docs): remove superseded overview draft`.
+Do not reference untracked drafts from committed project documentation. If a draft becomes useful again, commit it explicitly first.

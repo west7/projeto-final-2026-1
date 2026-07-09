@@ -313,7 +313,7 @@ T10 -> T11 -> T12
 **What:** Update project report with problem, architecture, data, guardrails, evaluation, ethics and demo script.
 **Where:** `README.md` or final report file
 **Depends on:** T11
-**Reuses:** `.specs`, HTML overview, dataset analysis.
+**Reuses:** `.specs`, `README.md`, dataset analysis.
 **Requirement:** DELAY-08, DELAY-09
 
 **Tools:**

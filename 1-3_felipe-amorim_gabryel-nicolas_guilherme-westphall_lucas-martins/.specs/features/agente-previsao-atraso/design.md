@@ -32,7 +32,7 @@ graph TD
 | --- | --- | --- |
 | Dashboard shell | `frontend/src/App.jsx` | Keep the tower-of-control layout and add real state/API calls. |
 | Visual styles | `frontend/src/styles.css` | Extend existing classes for risk badges, explanation panel and error states. |
-| Static overview | `projeto_agente_atraso_visao_geral.html` | Preserve decisions: agent-only, historical context, guardrails, fallback. |
+| Project README | `README.md` | Preserve the problem framing, stakeholders, metrics and MVP scope. |
 | Raw dataset | `dataset` | Use as source for prepared features and evaluation. |
 
 ### Integration Points

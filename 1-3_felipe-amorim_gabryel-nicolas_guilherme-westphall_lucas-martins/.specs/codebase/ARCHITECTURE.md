@@ -10,7 +10,7 @@ graph TD
     C[Olist CSV dataset] --> D[planned data prep]
     D --> E[planned agent/API]
     E --> F[React dashboard]
-    G[static HTML overview] --> B
+    G[Project README] --> B
 ```
 
 ## Identified Patterns
@@ -29,12 +29,12 @@ graph TD
 **Implementation:** CSS classes such as `.app-shell`, `.topbar`, `.summary-grid`, `.workspace`, `.button`, `.metric-card`.
 **Example:** The layout switches from sidebar/table grid to single-column under `920px`.
 
-### Static Project Direction Document
+### Project Direction Document
 
-**Location:** `projeto_agente_atraso_visao_geral.html`
-**Purpose:** Explain the chosen direction for the project.
-**Implementation:** Standalone HTML/CSS document with sections for problem, agent idea, requirements, architecture, risks and scope.
-**Example:** The document states the MVP should use an agent over historical data rather than train a separate ML model.
+**Location:** `README.md`
+**Purpose:** Seed the final project report and explain the initial problem framing.
+**Implementation:** Markdown document with problem, stakeholders, business metrics, technical metric and MVP scope.
+**Example:** The document states the MVP should classify whether an order is likely to delay and return a simple explanation.
 
 ## Data Flow
 
@@ -72,7 +72,6 @@ graph LR
 - `readme.md`: course-level final project instructions.
 - `trilhas.md`: available tracks.
 - `README.md`: problem definition for Trilha 1.3.
-- `projeto_agente_atraso_visao_geral.html`: project direction.
 - `dataset/`: Olist CSV files.
 - `frontend/`: Vite React dashboard.
 - `.specs/`: SDD documentation introduced for planning.

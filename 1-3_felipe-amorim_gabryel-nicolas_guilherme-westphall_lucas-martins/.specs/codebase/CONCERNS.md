@@ -24,13 +24,13 @@ Delivered orders inspected locally show about 8.1% late cases.
 
 ### C-004: Regional bias
 
-The HTML overview flags possible under-representation of Norte/Nordeste.
+Planning analysis flags possible under-representation of Norte/Nordeste.
 
 **Mitigation:** Report performance and fallback frequency by region/state where possible; avoid recommendations that punish customers in underrepresented regions.
 
 ### C-005: License confirmation
 
-The HTML overview says the dataset license should be declared and confirmed.
+The project documentation requires the dataset license to be declared and confirmed.
 
 **Mitigation:** Confirm official Kaggle license before final report and cite the source.
 

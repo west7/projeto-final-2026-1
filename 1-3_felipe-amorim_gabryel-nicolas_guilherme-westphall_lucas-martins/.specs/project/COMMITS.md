@@ -88,18 +88,17 @@ ecbd0fe chore(data): add Olist source dataset
 
 Note: the dataset is about 123 MB total, with the largest file around 61 MB. It is below the common 100 MB per-file GitHub limit, but still large enough to keep as an intentional repository decision.
 
-### Optional Commit 5 - only if the group wants the draft kept
+### Optional Commit 5 - only if a new draft is promoted
 
 ```text
-docs(project): add initial problem statement draft
+docs(project): add supplementary planning draft
 ```
 
 Include:
 
-- `README.md`
-- `projeto_agente_atraso_visao_geral.html`
+- Any supplementary draft that the group explicitly wants in version control.
 
-Alternative: commit only `README.md` and remove/ignore the HTML after review, since the HTML is superseded by the specs.
+Rule: committed docs must not mention untracked drafts.
 
 ## Future Implementation Commits
 

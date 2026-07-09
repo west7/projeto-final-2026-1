@@ -39,4 +39,4 @@
 
 - Build tool: Vite.
 - React plugin: `@vitejs/plugin-react`.
-- Documentation: Markdown and static HTML overview.
+- Documentation: Markdown specs and project README.

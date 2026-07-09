@@ -16,7 +16,7 @@ Equipes de logistica e atendimento precisam identificar pedidos com risco de atr
 
 | Feature | Reason |
 | --- | --- |
-| Modelo supervisionado treinado | Fora da direcao definida no HTML e consome tempo do que sera avaliado no MVP. |
+| Modelo supervisionado treinado | Fora da direcao definida nas specs e consome tempo do que sera avaliado no MVP. |
 | Analise de sentimento de reviews | Reviews acontecem depois da entrega e nao resolvem previsao antecipada. |
 | Acionamento real de sistemas externos | MVP foca recomendacao, nao automacao operacional em producao. |
 | Autenticacao | Nao e necessaria para demonstracao do fluxo agente -> API -> produto. |

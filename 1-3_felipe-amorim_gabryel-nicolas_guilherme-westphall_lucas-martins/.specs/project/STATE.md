@@ -10,7 +10,7 @@
 ### AD-001: MVP sem modelo supervisionado (2026-07-09)
 
 **Decision:** O MVP usara um agente com ferramenta de consulta estatistica ao historico Olist, sem treinar um modelo de ML separado.
-**Reason:** O enunciado valoriza agente, API, produto, guardrails, fallback, monitoramento e deploy; o HTML de visao geral ja aponta essa direcao.
+**Reason:** O enunciado valoriza agente, API, produto, guardrails, fallback, monitoramento e deploy; as specs consolidam essa direcao.
 **Trade-off:** A acuracia pode ser menor que a de um modelo treinado, especialmente em combinacoes raras.
 **Impact:** As tarefas priorizam preparo de dados, consulta historica explicavel, API e produto.
 
@@ -94,7 +94,7 @@
 - [ ] Confirmar licenca oficial do dataset na fonte.
 - [ ] Decidir se o LLM sera usado ou se a explicacao sera totalmente templateada.
 - [ ] Definir onde hospedar API e frontend.
-- [ ] Decidir se `projeto_agente_atraso_visao_geral.html` sera removido ou mantido como material historico fora do MVP.
+- [ ] Evitar referencias a rascunhos locais nao commitados na documentacao versionada.
 
 ---
 

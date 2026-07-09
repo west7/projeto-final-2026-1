@@ -5,7 +5,6 @@
 ```text
 .
 ├── README.md
-├── projeto_agente_atraso_visao_geral.html
 ├── dataset/
 │   ├── olist_customers_dataset.csv
 │   ├── olist_geolocation_dataset.csv
@@ -34,7 +33,7 @@
 ## Ownership Boundaries
 
 - Course/project brief: repository root `readme.md` and `trilhas.md`, outside this delivery folder.
-- Project-specific planning: `README.md`, HTML overview and `.specs`.
+- Project-specific planning: `README.md` and `.specs`.
 - Raw data: `dataset`. Treat as source input; do not edit manually.
 - Product UI: `frontend`.
 
