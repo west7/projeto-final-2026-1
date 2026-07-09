@@ -76,9 +76,9 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] Required fields and optional fields are explicit.
-- [ ] Invalid UF, missing identifiers and impossible numeric values are handled.
-- [ ] Unit tests cover valid and invalid inputs.
+- [x] Required fields and optional fields are explicit.
+- [x] Invalid UF, missing identifiers and impossible numeric values are handled.
+- [x] Unit tests cover valid and invalid inputs.
 
 **Tests:** unit
 **Gate:** backend quick gate
@@ -100,10 +100,10 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] Delivered orders receive `delayed` target.
-- [ ] Leakage fields are excluded from feature output.
-- [ ] Item, product, seller, customer and payment aggregates are generated.
-- [ ] Small fixture tests verify target and aggregates.
+- [x] Delivered orders receive `delayed` target.
+- [x] Leakage fields are excluded from feature output.
+- [x] Item, product, seller, customer and payment aggregates are generated.
+- [x] Small fixture tests verify target and aggregates.
 
 **Tests:** unit/integration
 **Gate:** backend quick gate
