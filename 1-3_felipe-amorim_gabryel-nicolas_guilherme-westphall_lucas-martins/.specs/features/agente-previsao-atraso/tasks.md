@@ -1,7 +1,7 @@
 # Agente de Previsao de Atraso Tasks
 
-**Design:** `.specs/features/agente-design.md`
-**Status:** Draft
+**Design:** `.specs/features/agente-previsao-atraso/design.md`
+**Status:** Executing
 
 ---
 
@@ -125,10 +125,10 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] Risk score is computed from delayed rate in selected segment.
-- [ ] Risk level maps score to low/medium/high.
-- [ ] Confidence reflects sample size and fallback depth.
-- [ ] Tests cover specific match, fallback and global baseline.
+- [x] Risk score is computed from delayed rate in selected segment.
+- [x] Risk level maps score to low/medium/high.
+- [x] Confidence reflects sample size and fallback depth.
+- [x] Tests cover specific match, fallback and global baseline.
 
 **Tests:** unit
 **Gate:** backend quick gate

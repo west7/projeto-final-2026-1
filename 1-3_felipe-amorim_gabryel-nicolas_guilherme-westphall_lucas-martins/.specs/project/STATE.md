@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-09
-**Current Work:** agente-previsao-atraso - executing (Phase 1 complete, Phase 2 next)
+**Current Work:** agente-previsao-atraso - executing (Phase 1 complete, Phase 2 T4 complete, T5 next)
 
 ---
 
@@ -46,12 +46,14 @@
 **Workaround:** Documentar como pendente e manter uso academico/local.
 **Resolution:** Confirmar na pagina oficial do dataset Olist no Kaggle antes da entrega.
 
-### B-002: Backend ainda nao existe
+## Resolved Blockers
+
+### B-002: Backend fundacional inexistente
 
 **Discovered:** 2026-07-09
-**Impact:** Fundacao, schemas/guardrails de entrada e preparo de dados prontos (T1-T3). Falta risk tool, agente, explicacao/acao, API, guardrails de saida e monitoramento.
-**Workaround:** Backend isolado em `backend/` dentro desta pasta de entrega.
-**Resolution:** Executar feature `agente-previsao-atraso` (Phase 2+) e depois API/produto.
+**Resolved:** 2026-07-09
+**Impact:** Backend fundacional criado em `backend/`, com schemas, preparo de dados e ferramenta de risco historico.
+**Resolution:** T1-T4 implementadas e validadas; continuam pendentes explicacao/acao, agente, API, produto, deploy e relatorio.
 
 ---
 
@@ -107,14 +109,15 @@
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 1 (Backend Foundation) complete — T1, T2, T3 done. Next: Phase 2, T4.
+**Phase/Task:** Phase 2 (Agent Core and Evaluation) in progress — T1, T2, T3, T4 done. Next: T5.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
 - T3 `4ab224a` — `backend/app/data_prep.py`: `build_order_features()`/`load_prepared_features()`, stdlib-only, delayed target, leakage excluded, aggregates. 7 tests. Real-data smoke: 96,470 delivered / 8.112% delayed (matches L-001).
-**Test state:** 24 passed, 0 failed.
-**Next step:** T4 — historical risk tool (`backend/app/risk_tool.py`): `estimate_delay_risk(order) -> RiskEvidence`, fallback hierarchy (design.md), risk score/level/confidence. Depends on T3 (done). Then T5, T6, T7.
+- T4 current branch — `backend/app/risk_tool.py`: `HistoricalRiskTool`/`estimate_delay_risk()`, fallback hierarchy, risk score/level/confidence and factors. 5 tests.
+**Test state:** 29 passed, 0 failed (`cd backend && ./.venv/bin/pytest`).
+**Next step:** T5 — explanation/action policy (`backend/app/explanation.py`): deterministic explanation, recommended action by risk/confidence, output guardrail for missing evidence. Depends on T4 (done). Then T6, T7.
 **Blockers:** none active on Phase 2. B-001 (dataset license) still open for report.
-**Uncommitted files:** none — tree clean.
+**Uncommitted files:** local untracked HTML draft remains intentionally outside commits.
 **Branch:** main.
 **Notes:** Executing on `main` (matches T1). One sub-agent worker died on a transient API error mid-T3; T3 finished inline. Verifier not yet run — fires after feature's final task (T12).

@@ -4,16 +4,16 @@
 
 ## Current State
 
-- No automated test framework is configured.
+- Backend automated tests are configured with pytest.
 - Frontend has a build gate: `npm run build` from `frontend`.
-- Backend does not exist yet, so backend tests and gates must be introduced with implementation.
+- Backend has a quick/full gate: `./.venv/bin/pytest` or `python -m pytest` from `backend` after dependencies are installed.
 
 ## Test Coverage Matrix
 
 | Layer | Required Test Type | Current Command | Planned Command | Parallel-Safe |
 | --- | --- | --- | --- | --- |
-| Data prep | unit/integration | Not available | `python -m pytest` | Yes, once pytest exists |
-| Risk tool | unit | Not available | `python -m pytest` | Yes, once pytest exists |
+| Data prep | unit/integration | `./.venv/bin/pytest` | `python -m pytest` | Yes |
+| Risk tool | unit | `./.venv/bin/pytest` | `python -m pytest` | Yes |
 | Agent/API | integration | Not available | `python -m pytest` plus API smoke test | No until API fixture is isolated |
 | Frontend components | build/smoke | `npm run build` | `npm run build` | Yes |
 | Docker/deploy | smoke | Not available | `docker compose up` smoke check | No |
@@ -31,7 +31,7 @@ npm run build
 
 ```bash
 cd backend
-python -m pytest
+./.venv/bin/pytest
 ```
 
 **Planned full gate:**
@@ -54,5 +54,5 @@ python -m pytest
 ## Test Count Baseline
 
 - Frontend automated tests: 0.
-- Backend automated tests: 0.
+- Backend automated tests: 29.
 - Build gate exists but no test assertions yet.

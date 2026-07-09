@@ -1,6 +1,6 @@
 # Agente de Previsao de Atraso Design
 
-**Spec:** `.specs/features/agente-spec.md`
+**Spec:** `.specs/features/agente-previsao-atraso/spec.md`
 **Status:** Draft
 
 ---
