@@ -35,7 +35,7 @@ Actual commit:
 dccb5a6 chore(project): rename delivery folder to submission format
 ```
 
-### Commit 2 - ready
+### Commit 2 - created
 
 ```text
 docs(specs): add SDD planning for delay prediction agent
@@ -48,18 +48,27 @@ Include:
 - `.specs/project/STATE.md`
 - `.specs/codebase/*.md`
 - `.specs/features/agente-previsao-atraso/*.md`
+- `.specs/project/DOCUMENTS.md`
+- `.specs/project/COMMITS.md`
 
-### Commit 3 - ready
+Actual commit:
 
 ```text
-docs(project): catalog superseded planning documents
+be1030f docs(specs): add SDD planning for delay prediction agent
+```
+
+### Commit 3 - created
+
+```text
+docs(project): add initial delay prediction report draft
 ```
 
 Include:
 
-- `.specs/project/DOCUMENTS.md`
-- `.specs/project/COMMITS.md`
-- State updates about folder naming and document cleanup.
+- `README.md`
+- Any small metadata update needed after commit creation.
+
+Actual commit: see `git log --oneline`.
 
 ### Optional Commit 4 - requires group decision
 
@@ -81,10 +90,10 @@ docs(project): add initial problem statement draft
 
 Include:
 
-- `README-projeto.md`
+- `README.md`
 - `projeto_agente_atraso_visao_geral.html`
 
-Alternative: commit only `README-projeto.md` and remove/ignore the HTML after review, since the HTML is superseded by the specs.
+Alternative: commit only `README.md` and remove/ignore the HTML after review, since the HTML is superseded by the specs.
 
 ## Future Implementation Commits
 

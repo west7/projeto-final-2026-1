@@ -311,7 +311,7 @@ T10 -> T11 -> T12
 ### T12: Complete report/demo documentation
 
 **What:** Update project report with problem, architecture, data, guardrails, evaluation, ethics and demo script.
-**Where:** `README-projeto.md` or final report file
+**Where:** `README.md` or final report file
 **Depends on:** T11
 **Reuses:** `.specs`, HTML overview, dataset analysis.
 **Requirement:** DELAY-08, DELAY-09

@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | `readme.md` | Keep | Enunciado oficial do projeto final, incluindo criterio de entrega e formato da pasta. |
 | `trilhas.md` | Keep | Fonte da trilha/projeto escolhidos. |
-| `README-projeto.md` | Keep and evolve | Seed do relatorio final; ainda deve receber arquitetura, avaliacao, demo, impacto e referencias. |
+| `README.md` | Keep and evolve | Seed do relatorio final; ainda deve receber arquitetura, avaliacao, demo, impacto e referencias. |
 | `.specs/project/PROJECT.md` | Keep | Visao e escopo SDD. |
 | `.specs/project/ROADMAP.md` | Keep | Planejamento por milestones. |
 | `.specs/project/STATE.md` | Keep | Memoria persistente de decisoes, blockers e aprendizados. |

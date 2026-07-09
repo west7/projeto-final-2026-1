@@ -71,7 +71,7 @@ graph LR
 
 - `readme.md`: course-level final project instructions.
 - `trilhas.md`: available tracks.
-- `README-projeto.md`: problem definition for Trilha 1.3.
+- `README.md`: problem definition for Trilha 1.3.
 - `projeto_agente_atraso_visao_geral.html`: project direction.
 - `dataset/`: Olist CSV files.
 - `frontend/`: Vite React dashboard.
