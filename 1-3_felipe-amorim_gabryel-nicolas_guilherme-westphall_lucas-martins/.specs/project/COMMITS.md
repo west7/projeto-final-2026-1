@@ -70,7 +70,7 @@ Include:
 
 Actual commit: see `git log --oneline`.
 
-### Optional Commit 4 - requires group decision
+### Commit 4 - created
 
 ```text
 chore(data): add Olist source dataset
@@ -80,7 +80,13 @@ Include:
 
 - `dataset/*.csv`
 
-Note: the dataset is about 123 MB total, with the largest file around 61 MB. It is below the common 100 MB per-file GitHub limit, but still large enough to be a deliberate repository decision.
+Actual commit:
+
+```text
+ecbd0fe chore(data): add Olist source dataset
+```
+
+Note: the dataset is about 123 MB total, with the largest file around 61 MB. It is below the common 100 MB per-file GitHub limit, but still large enough to keep as an intentional repository decision.
 
 ### Optional Commit 5 - only if the group wants the draft kept
 
