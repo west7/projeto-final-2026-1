@@ -177,7 +177,7 @@ T10 -> T11 -> T12
 
 - [x] `classify_order` returns complete prediction response.
 - [x] Fallback and guardrail events are represented in output.
-- [x] LLM failure path, if LLM exists, falls back to deterministic text.
+- [x] LLM primary path falls back to deterministic text when unconfigured or unavailable.
 - [x] Tests cover normal, fallback and guardrail scenarios.
 
 **Tests:** unit/integration

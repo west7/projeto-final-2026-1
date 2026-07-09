@@ -35,12 +35,12 @@
 **Trade-off:** O nome ficou longo, mas evita ambiguidade na submissao.
 **Impact:** Specs, tarefas e comandos devem referenciar o novo caminho.
 
-### AD-005: Explicacao deterministica com LLM opcional (2026-07-09)
+### AD-005: LLM como camada agentica primaria (2026-07-09)
 
-**Decision:** O MVP gera explicacao e acao por politica deterministica; um cliente externo de explicacao pode sobrescrever o texto, mas falhas caem no template.
-**Reason:** O requisito central e explicabilidade rastreavel e confiavel; LLM nao deve bloquear o fluxo operacional.
-**Trade-off:** A linguagem pode ser menos natural que uma resposta gerada, mas fica testavel e barata.
-**Impact:** `backend/app/agent.py` aceita `explanation_client` opcional e registra `llm_fallback` quando houver falha.
+**Decision:** O MVP usa LLM como camada primaria para redigir a resposta/acao do agente a partir das evidencias; a explicacao deterministica fica como fallback.
+**Reason:** O enunciado pede um agente de IA, escolha de LLM, prompts, fallback e custo/latencia de LLM; um fluxo puramente deterministico ficaria fora do foco.
+**Trade-off:** A demo passa a depender de credenciais/configuracao de LLM para o caminho ideal, mas segue funcionando com degradacao graciosa.
+**Impact:** `backend/app/agent.py` aceita `llm_client`, registra `llm_unconfigured`/`llm_fallback` e `backend/app/llm.py` fornece cliente OpenAI-compatible configuravel por ambiente.
 
 ---
 
@@ -122,9 +122,10 @@
 - T3 `4ab224a` — `backend/app/data_prep.py`: `build_order_features()`/`load_prepared_features()`, stdlib-only, delayed target, leakage excluded, aggregates. 7 tests. Real-data smoke: 96,470 delivered / 8.112% delayed (matches L-001).
 - T4 current branch — `backend/app/risk_tool.py`: `HistoricalRiskTool`/`estimate_delay_risk()`, fallback hierarchy, risk score/level/confidence and factors. 5 tests.
 - T5 current branch — `backend/app/explanation.py`: deterministic explanation/action policy, low-confidence human review and output guardrail for missing evidence. 10 tests.
-- T6 current branch — `backend/app/agent.py`: `DelayAgent`/`classify_order()`, latency telemetry, fallback/guardrail events and optional explanation-client fallback. 5 tests.
-**Test state:** 44 passed, 0 failed (`cd backend && ./.venv/bin/pytest`).
-**Next step:** T7 (offline evaluation) can run from T4, or T8 (API endpoints) can run from T6. For product path, prioritize T8.
+- T6 current branch — `backend/app/agent.py`: `DelayAgent`/`classify_order()`, latency telemetry, fallback/guardrail events and LLM-first explanation flow. 6 tests.
+- Alignment current branch — `backend/app/llm.py`: OpenAI-compatible LLM client with environment configuration and fallback-safe errors. 3 tests.
+**Test state:** 48 passed, 0 failed (`cd backend && ./.venv/bin/pytest`).
+**Next step:** T8 should wire API startup to `build_llm_client_from_env()` so deployed/demo path uses LLM when `LLM_API_KEY` or `OPENAI_API_KEY` is present. T7 can still run in parallel later.
 **Blockers:** none active on Phase 2. B-001 (dataset license) still open for report.
 **Uncommitted files:** local untracked HTML draft remains intentionally outside commits.
 **Branch:** main.

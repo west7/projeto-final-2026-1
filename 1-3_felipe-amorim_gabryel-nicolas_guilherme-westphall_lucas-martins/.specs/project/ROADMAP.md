@@ -40,7 +40,7 @@
 **Observabilidade Minima** - PLANNED
 
 - Medir latencia por chamada.
-- Registrar fallback, erros de guardrail e custo estimado de LLM se usado.
+- Registrar fallback, erros de guardrail e custo/latencia estimados da chamada LLM.
 - Criar logs consultaveis para o relatorio.
 
 ---

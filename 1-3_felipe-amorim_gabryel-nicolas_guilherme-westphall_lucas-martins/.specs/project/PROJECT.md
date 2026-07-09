@@ -18,7 +18,7 @@
 
 - Frontend: React 19 + Vite 6, ja presente em `frontend`.
 - Backend/API: Python a definir durante implementacao, recomendado FastAPI pelo encaixe com API REST e validacao de schema.
-- Agent layer: agente deterministico com ferramenta de consulta estatistica ao dataset; LLM opcional para redacao controlada da explicacao.
+- Agent layer: agente com LLM para resposta/acao, usando ferramenta deterministica de consulta estatistica ao dataset e fallback templateado.
 - Data: CSVs do Olist em `dataset`.
 
 **Key dependencies planned:**

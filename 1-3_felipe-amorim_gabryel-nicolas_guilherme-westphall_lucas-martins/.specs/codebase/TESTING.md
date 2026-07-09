@@ -54,5 +54,5 @@ python -m pytest
 ## Test Count Baseline
 
 - Frontend automated tests: 0.
-- Backend automated tests: 44.
+- Backend automated tests: 48.
 - Build gate exists but no test assertions yet.

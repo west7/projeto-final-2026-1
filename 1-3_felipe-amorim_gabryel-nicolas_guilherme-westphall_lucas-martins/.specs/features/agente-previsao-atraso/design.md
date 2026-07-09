@@ -7,7 +7,7 @@
 
 ## Architecture Overview
 
-O MVP usa um agente com uma ferramenta deterministica de consulta historica. O agente nao treina modelo supervisionado; ele calcula risco a partir de segmentos historicos do Olist, aplica fallback quando o segmento e pequeno, transforma evidencias em explicacao e devolve uma acao operacional.
+O MVP usa um agente com LLM e uma ferramenta deterministica de consulta historica. A ferramenta calcula risco a partir de segmentos historicos do Olist; a LLM transforma evidencias em explicacao e acao operacional. Se a LLM estiver indisponivel, o sistema usa explicacao deterministica como fallback.
 
 ```mermaid
 graph TD
@@ -18,7 +18,9 @@ graph TD
     E --> F[Prepared Olist features]
     F --> E
     E --> G[Risk score + evidence]
-    G --> H[Explanation + action policy]
+    G --> H[LLM explanation + action]
+    H -. LLM failure .-> L[Deterministic fallback policy]
+    L --> I[Output guardrails]
     H --> I[Output guardrails]
     I --> J[API response]
     B --> K[Telemetry logs]
@@ -69,11 +71,11 @@ graph TD
 
 ### Delay Agent
 
-- **Purpose:** Orchestrate validation context, call risk tool, produce explanation and action.
+- **Purpose:** Orchestrate validation context, call risk tool, call LLM for explanation/action and fall back deterministically.
 - **Location:** `backend/app/agent.py`
 - **Interfaces:**
   - `classify_order(order: OrderInput) -> DelayPrediction`
-- **Dependencies:** Historical Risk Tool, explanation/action policy, optional LLM client.
+- **Dependencies:** Historical Risk Tool, LLM client, explanation/action fallback policy.
 - **Reuses:** Deterministic evidence from risk tool.
 
 ### API
@@ -219,7 +221,7 @@ Each segment must have a minimum sample threshold. If not, move to the next fall
 | Missing required fields | Return validation error with field list | User sees what to fix. |
 | Unsupported UF/category | Use fallback or validation warning | User sees reduced confidence. |
 | Prepared data missing | API returns service unavailable fallback | User sees friendly unavailable state. |
-| LLM unavailable | Use deterministic explanation template | User still receives risk and action. |
+| LLM unavailable or unconfigured | Use deterministic explanation template and log fallback event | User still receives risk and action. |
 | Output missing evidence | Output guardrail blocks and returns safe fallback | User sees low-confidence response. |
 
 ---
@@ -232,4 +234,4 @@ Each segment must have a minimum sample threshold. If not, move to the next fall
 | Target | Delivery after estimated date | Directly matches business problem. |
 | UI | Existing tower-control dashboard | Already present and aligned with stakeholders. |
 | Evaluation metric | Recall for late orders plus fallback rate | Better than accuracy for imbalanced delay cases. |
-| LLM | Optional/template fallback required | Keeps system reliable if LLM is unavailable. |
+| LLM | Primary response/action layer with template fallback | Aligns with agent requirement while keeping system reliable if LLM is unavailable. |

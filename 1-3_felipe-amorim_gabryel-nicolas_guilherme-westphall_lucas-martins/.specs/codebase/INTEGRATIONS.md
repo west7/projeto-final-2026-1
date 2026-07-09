@@ -14,7 +14,7 @@
 | System | Method | Status | Notes |
 | --- | --- | --- | --- |
 | Agent API | REST over HTTP | Planned | Frontend will call endpoint to classify selected orders. |
-| LLM provider | API call | Optional | Use only for controlled natural-language explanation if time and credentials allow. |
+| LLM provider | API call | Planned/primary | Agent should use LLM for response/action text; deterministic template is fallback when provider is unavailable or unconfigured. |
 | Docker | Container runtime | Planned | Required for deployable/reproducible delivery. |
 | Hosting | Public deployment | Planned | Target not selected. |
 
@@ -34,6 +34,7 @@ Output should include:
 - `recommended_action`: action for logistics/attendance.
 - `fallback_used`: boolean.
 - `latency_ms`: request duration.
+- LLM telemetry: provider/model, fallback event and estimated cost/tokens when available.
 
 ## Security/Privacy Notes
 

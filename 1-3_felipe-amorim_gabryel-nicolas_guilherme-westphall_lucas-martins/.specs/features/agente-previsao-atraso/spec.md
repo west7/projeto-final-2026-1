@@ -10,7 +10,7 @@ Equipes de logistica e atendimento precisam identificar pedidos com risco de atr
 - [ ] Explicar os principais fatores da classificacao com evidencias e tamanho de amostra.
 - [ ] Sugerir uma acao operacional clara para cada nivel de risco.
 - [ ] Validar entrada e saida com guardrails e responder graciosamente quando faltar dado.
-- [ ] Registrar latencia, fallback, erros e custo estimado para avaliacao.
+- [ ] Registrar latencia, fallback, erros e custo/uso estimado de LLM para avaliacao.
 
 ## Out of Scope
 
@@ -86,7 +86,7 @@ Equipes de logistica e atendimento precisam identificar pedidos com risco de atr
 
 1. WHEN uma classificacao acontecer THEN system SHALL registrar latencia ponta a ponta.
 2. WHEN fallback ou guardrail for acionado THEN system SHALL registrar o tipo de evento.
-3. WHEN LLM for usado THEN system SHALL registrar custo estimado por interacao; se nao for usado, custo SHALL ser reportado como zero.
+3. WHEN a classificacao usar LLM THEN system SHALL registrar modelo, latencia e custo/uso estimado por interacao; quando cair em fallback, o evento SHALL ser registrado.
 
 **Independent Test:** Realizar chamadas e inspecionar logs gerados.
 

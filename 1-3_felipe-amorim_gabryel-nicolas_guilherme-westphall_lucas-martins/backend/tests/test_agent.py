@@ -39,8 +39,11 @@ def _evidence(**overrides):
 
 
 def test_classify_order_returns_complete_prediction_response():
+    def llm_client(order, evidence, fallback):
+        return fallback.explanation
+
     risk_tool = FakeRiskTool(_evidence())
-    prediction = DelayAgent(risk_tool).classify_order(_order())
+    prediction = DelayAgent(risk_tool, llm_client=llm_client).classify_order(_order())
 
     assert prediction.order_id == "new-1"
     assert prediction.risk_score == 0.25
@@ -64,7 +67,7 @@ def test_classify_order_represents_fallback_and_low_confidence_events():
         segment_used="global delivered-order baseline",
         fallback_used=True,
     )
-    prediction = classify_order(_order(), FakeRiskTool(evidence))
+    prediction = classify_order(_order(), FakeRiskTool(evidence), llm_client=lambda order, evidence, fallback: fallback.explanation)
 
     assert prediction.fallback_used is True
     assert "fallback_used" in prediction.guardrails
@@ -82,25 +85,32 @@ def test_output_guardrail_returns_safe_low_confidence_prediction():
     assert prediction.confidence == "low"
     assert prediction.fallback_used is True
     assert prediction.evidence.factors == ["output guardrail blocked incomplete evidence: missing_factors"]
-    assert prediction.guardrails == ["output_guardrail:missing_factors"]
+    assert prediction.guardrails == ["output_guardrail:missing_factors", "llm_unconfigured"]
     assert "revisao humana" in prediction.recommended_action
 
 
-def test_external_explanation_client_can_override_deterministic_text():
-    def client(order, evidence, draft):
+def test_llm_client_is_primary_explanation_path():
+    def client(order, evidence, fallback):
         return f"LLM: {order.order_id} {evidence.risk_level}"
 
-    prediction = DelayAgent(FakeRiskTool(_evidence()), explanation_client=client).classify_order(_order())
+    prediction = DelayAgent(FakeRiskTool(_evidence()), llm_client=client).classify_order(_order())
 
     assert prediction.explanation == "LLM: new-1 high"
     assert prediction.guardrails == []
 
 
-def test_external_explanation_failure_falls_back_to_deterministic_text():
-    def broken_client(order, evidence, draft):
+def test_missing_llm_client_falls_back_to_deterministic_text():
+    prediction = DelayAgent(FakeRiskTool(_evidence())).classify_order(_order())
+
+    assert "amostra historica: 40 pedidos" in prediction.explanation
+    assert prediction.guardrails == ["llm_unconfigured"]
+
+
+def test_llm_failure_falls_back_to_deterministic_text():
+    def broken_client(order, evidence, fallback):
         raise RuntimeError("offline")
 
-    prediction = DelayAgent(FakeRiskTool(_evidence()), explanation_client=broken_client).classify_order(_order())
+    prediction = DelayAgent(FakeRiskTool(_evidence()), llm_client=broken_client).classify_order(_order())
 
     assert "amostra historica: 40 pedidos" in prediction.explanation
     assert prediction.guardrails == ["llm_fallback"]

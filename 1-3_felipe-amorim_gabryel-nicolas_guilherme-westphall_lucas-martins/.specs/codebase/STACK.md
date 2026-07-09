@@ -32,7 +32,7 @@
 ## External Services
 
 - Dataset: Olist Brazilian E-Commerce public dataset in local CSVs.
-- LLM provider: Not selected.
+- LLM provider: OpenAI-compatible HTTP client scaffolded; concrete model/provider configured by `LLM_API_KEY`/`OPENAI_API_KEY`, `LLM_MODEL` and `LLM_BASE_URL`.
 - Deployment: Not selected.
 
 ## Development Tools
