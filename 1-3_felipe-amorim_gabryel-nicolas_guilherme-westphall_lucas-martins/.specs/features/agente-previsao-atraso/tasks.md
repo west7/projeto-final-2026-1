@@ -175,10 +175,10 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] `classify_order` returns complete prediction response.
-- [ ] Fallback and guardrail events are represented in output.
-- [ ] LLM failure path, if LLM exists, falls back to deterministic text.
-- [ ] Tests cover normal, fallback and guardrail scenarios.
+- [x] `classify_order` returns complete prediction response.
+- [x] Fallback and guardrail events are represented in output.
+- [x] LLM failure path, if LLM exists, falls back to deterministic text.
+- [x] Tests cover normal, fallback and guardrail scenarios.
 
 **Tests:** unit/integration
 **Gate:** backend quick gate

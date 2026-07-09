@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-09
-**Current Work:** agente-previsao-atraso - executing (Phase 2 T5 complete, T6 next)
+**Current Work:** agente-previsao-atraso - executing (Phase 2 T6 complete, T7/T8 next)
 
 ---
 
@@ -34,6 +34,13 @@
 **Reason:** O enunciado pede o formato `(X-Y_nome_integrantes)`, com X representando a trilha e Y o projeto.
 **Trade-off:** O nome ficou longo, mas evita ambiguidade na submissao.
 **Impact:** Specs, tarefas e comandos devem referenciar o novo caminho.
+
+### AD-005: Explicacao deterministica com LLM opcional (2026-07-09)
+
+**Decision:** O MVP gera explicacao e acao por politica deterministica; um cliente externo de explicacao pode sobrescrever o texto, mas falhas caem no template.
+**Reason:** O requisito central e explicabilidade rastreavel e confiavel; LLM nao deve bloquear o fluxo operacional.
+**Trade-off:** A linguagem pode ser menos natural que uma resposta gerada, mas fica testavel e barata.
+**Impact:** `backend/app/agent.py` aceita `explanation_client` opcional e registra `llm_fallback` quando houver falha.
 
 ---
 
@@ -94,7 +101,6 @@
 ## Todos
 
 - [ ] Confirmar licenca oficial do dataset na fonte.
-- [ ] Decidir se o LLM sera usado ou se a explicacao sera totalmente templateada.
 - [ ] Definir onde hospedar API e frontend.
 - [ ] Evitar referencias a rascunhos locais nao commitados na documentacao versionada.
 
@@ -109,15 +115,16 @@
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 2 (Agent Core and Evaluation) in progress — T1, T2, T3, T4, T5 done. Next: T6.
+**Phase/Task:** Phase 2 (Agent Core and Evaluation) in progress — T1, T2, T3, T4, T5, T6 done. Next: T7 or T8.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
 - T3 `4ab224a` — `backend/app/data_prep.py`: `build_order_features()`/`load_prepared_features()`, stdlib-only, delayed target, leakage excluded, aggregates. 7 tests. Real-data smoke: 96,470 delivered / 8.112% delayed (matches L-001).
 - T4 current branch — `backend/app/risk_tool.py`: `HistoricalRiskTool`/`estimate_delay_risk()`, fallback hierarchy, risk score/level/confidence and factors. 5 tests.
 - T5 current branch — `backend/app/explanation.py`: deterministic explanation/action policy, low-confidence human review and output guardrail for missing evidence. 10 tests.
-**Test state:** 39 passed, 0 failed (`cd backend && ./.venv/bin/pytest`).
-**Next step:** T6 — agent orchestration (`backend/app/agent.py`): combine risk tool, explanation/action policy, output guardrails, fallback events and latency telemetry. Depends on T5 (done). Then T7/T8.
+- T6 current branch — `backend/app/agent.py`: `DelayAgent`/`classify_order()`, latency telemetry, fallback/guardrail events and optional explanation-client fallback. 5 tests.
+**Test state:** 44 passed, 0 failed (`cd backend && ./.venv/bin/pytest`).
+**Next step:** T7 (offline evaluation) can run from T4, or T8 (API endpoints) can run from T6. For product path, prioritize T8.
 **Blockers:** none active on Phase 2. B-001 (dataset license) still open for report.
 **Uncommitted files:** local untracked HTML draft remains intentionally outside commits.
 **Branch:** main.
