@@ -1,0 +1,107 @@
+"""HTTP API for the Olist delay prediction agent."""
+from __future__ import annotations
+
+import logging
+import os
+from pathlib import Path
+from time import perf_counter
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+from app.agent import DelayAgent
+from app.health import health
+from app.llm import build_llm_client_from_env
+from app.risk_tool import HistoricalRiskTool
+from app.schemas import DelayPrediction, OrderInput, format_validation_error
+
+logger = logging.getLogger(__name__)
+_UNSET = object()
+_DEFAULT_PREPARED_PATH = Path(__file__).resolve().parents[1] / "data" / "prepared_orders.jsonl"
+
+
+def create_app(agent=_UNSET, startup_error: str | None = None) -> FastAPI:
+    if agent is _UNSET:
+        agent, startup_error = _build_default_agent()
+
+    api = FastAPI(title="Olist Delay Agent API")
+    api.state.agent = agent
+    api.state.startup_error = startup_error
+
+    @api.exception_handler(RequestValidationError)
+    async def validation_error_handler(request: Request, exc: RequestValidationError):
+        logger.warning(
+            "request_validation_failed",
+            extra={"event_type": "guardrail_validation", "latency_ms": 0},
+        )
+        return JSONResponse(
+            status_code=422,
+            content={"error": "validation_error", "details": format_validation_error(exc)},
+        )
+
+    @api.get("/health")
+    async def get_health() -> dict:
+        return health()
+
+    @api.post("/predict-delay", response_model=DelayPrediction)
+    async def predict_delay(order: OrderInput, request: Request):
+        started = perf_counter()
+        configured_agent = request.app.state.agent
+        if configured_agent is None:
+            logger.error(
+                "prediction_unavailable",
+                extra={"event_type": "service_unavailable", "latency_ms": _elapsed_ms(started)},
+            )
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "error": "service_unavailable",
+                    "message": "O historico de pedidos nao esta disponivel no momento.",
+                },
+            )
+
+        try:
+            prediction = configured_agent.classify_order(order)
+        except Exception:
+            logger.exception(
+                "prediction_failed",
+                extra={"event_type": "prediction_error", "latency_ms": _elapsed_ms(started)},
+            )
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "error": "service_unavailable",
+                    "message": "Nao foi possivel classificar o pedido no momento.",
+                },
+            )
+
+        event_type = "prediction_fallback" if prediction.fallback_used or prediction.guardrails else "prediction_success"
+        logger.info(
+            "delay_prediction",
+            extra={"event_type": event_type, "latency_ms": _elapsed_ms(started)},
+        )
+        return prediction
+
+    return api
+
+
+def _build_default_agent() -> tuple[DelayAgent | None, str | None]:
+    prepared_path = Path(os.getenv("PREPARED_FEATURES_PATH", _DEFAULT_PREPARED_PATH))
+    if not prepared_path.is_file():
+        return None, "prepared_data_not_found"
+
+    try:
+        risk_tool = HistoricalRiskTool.from_path(prepared_path)
+        llm_client = build_llm_client_from_env()
+    except (OSError, ValueError):
+        logger.exception("agent_startup_failed", extra={"event_type": "startup_error", "latency_ms": 0})
+        return None, "agent_startup_failed"
+    return DelayAgent(risk_tool, llm_client=llm_client), None
+
+
+def _elapsed_ms(started: float) -> int:
+    return max(0, int((perf_counter() - started) * 1000))
+
+
+app = create_app()

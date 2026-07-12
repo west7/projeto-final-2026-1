@@ -224,10 +224,10 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] `GET /health` returns service status.
-- [ ] `POST /predict-delay` returns agent prediction.
-- [ ] Validation errors are friendly.
-- [ ] Logs include latency and event type.
+- [x] `GET /health` returns service status.
+- [x] `POST /predict-delay` returns agent prediction.
+- [x] Validation errors are friendly.
+- [x] Logs include latency and event type.
 
 **Tests:** integration
 **Gate:** backend full gate

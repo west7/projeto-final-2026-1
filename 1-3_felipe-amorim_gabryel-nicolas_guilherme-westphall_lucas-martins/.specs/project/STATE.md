@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-07-09
-**Current Work:** agente-previsao-atraso - executing (Phase 2 T6 complete, T7/T8 next)
+**Last Updated:** 2026-07-12
+**Current Work:** agente-previsao-atraso - executing (T8 complete, T7/T9 next)
 
 ---
 
@@ -115,7 +115,7 @@
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 2 (Agent Core and Evaluation) in progress — T1, T2, T3, T4, T5, T6 done. Next: T7 or T8.
+**Phase/Task:** Phase 3 (API and Product Integration) in progress — T1-T6 and T8 done. Next: T9; T7 remains available independently.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
@@ -124,9 +124,10 @@
 - T5 current branch — `backend/app/explanation.py`: deterministic explanation/action policy, low-confidence human review and output guardrail for missing evidence. 10 tests.
 - T6 current branch — `backend/app/agent.py`: `DelayAgent`/`classify_order()`, latency telemetry, fallback/guardrail events and LLM-first explanation flow. 6 tests.
 - Alignment current branch — `backend/app/llm.py`: OpenAI-compatible LLM client with environment configuration and fallback-safe errors. 3 tests.
-**Test state:** 48 passed, 0 failed (`cd backend && ./.venv/bin/pytest`).
-**Next step:** T8 should wire API startup to `build_llm_client_from_env()` so deployed/demo path uses LLM when `LLM_API_KEY` or `OPENAI_API_KEY` is present. T7 can still run in parallel later.
-**Blockers:** none active on Phase 2. B-001 (dataset license) still open for report.
-**Uncommitted files:** local untracked HTML draft remains intentionally outside commits.
+- T8 current branch — `backend/app/api.py`: health/prediction endpoints, friendly validation and service errors, event/latency logging, prepared-data and LLM environment wiring. 5 tests.
+**Test state:** 53 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes.
+**Next step:** T9 should connect the React dashboard to `POST /predict-delay`. T7 remains available independently for offline evaluation.
+**Blockers:** none active for T9. B-001 (dataset license) still open for report.
+**Uncommitted files:** none expected after the T8 commit.
 **Branch:** main.
 **Notes:** Executing on `main` (matches T1). One sub-agent worker died on a transient API error mid-T3; T3 finished inline. Verifier not yet run — fires after feature's final task (T12).
