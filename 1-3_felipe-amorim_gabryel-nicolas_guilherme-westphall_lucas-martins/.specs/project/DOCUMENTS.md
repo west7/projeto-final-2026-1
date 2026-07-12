@@ -12,6 +12,7 @@
 | `.specs/project/PROJECT.md` | Keep | Visao e escopo SDD. |
 | `.specs/project/ROADMAP.md` | Keep | Planejamento por milestones. |
 | `.specs/project/STATE.md` | Keep | Memoria persistente de decisoes, blockers e aprendizados. |
+| `.specs/project/TOOLING_REVIEW.md` | Keep | Analise adiada de MLflow, LangChain e ferramentas relacionadas para revisao pos-MVP. |
 | `.specs/codebase/*.md` | Keep | Mapeamento brownfield usado para proximas tarefas. |
 | `.specs/features/agente-*.md` | Keep | Spec, design e tarefas da feature principal. |
 

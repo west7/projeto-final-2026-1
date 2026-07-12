@@ -95,6 +95,7 @@
 - [ ] Treinar um modelo supervisionado para comparar com o agente - Captured during: planejamento.
 - [ ] Usar reviews para analise pos-entrega e insights de satisfacao - Captured during: planejamento.
 - [ ] Adicionar autenticacao e perfis de operador - Captured during: planejamento.
+- [ ] Reavaliar MLflow, LangChain/LangGraph e observabilidade apos T7-T12 - Criterios em `TOOLING_REVIEW.md`; captured during: integracao da API.
 
 ---
 
