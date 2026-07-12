@@ -249,10 +249,10 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] Form adds orders to local queue.
-- [ ] Selected orders call API.
-- [ ] Loading, success and error states are visible.
-- [ ] Existing build gate passes.
+- [x] Form adds orders to local queue.
+- [x] Selected orders call API.
+- [x] Loading, success and error states are visible.
+- [x] Existing build gate passes.
 
 **Tests:** build/smoke
 **Gate:** frontend build gate
@@ -274,10 +274,10 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] Risk badges distinguish low/medium/high.
-- [ ] Explanation and recommended action are visible for selected result.
-- [ ] Fallback/low-confidence response is understandable.
-- [ ] Mobile layout remains usable.
+- [x] Risk badges distinguish low/medium/high.
+- [x] Explanation and recommended action are visible for selected result.
+- [x] Fallback/low-confidence response is understandable.
+- [x] Mobile layout remains usable.
 
 **Tests:** build/smoke + manual UAT
 **Gate:** frontend build gate
@@ -299,9 +299,9 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] One command starts API and frontend or documented equivalent.
-- [ ] Environment variables are documented.
-- [ ] Health check works after startup.
+- [x] One command starts API and frontend or documented equivalent.
+- [x] Environment variables are documented.
+- [x] Health check works after startup.
 
 **Tests:** deploy smoke
 **Gate:** full gate

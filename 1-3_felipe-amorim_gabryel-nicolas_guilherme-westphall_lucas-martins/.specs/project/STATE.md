@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-12
-**Current Work:** agente-previsao-atraso - executing (T8 complete, T7/T9 next)
+**Current Work:** agente-previsao-atraso - executing (T9/T10/T11 complete, T7/T12 next)
 
 ---
 
@@ -87,6 +87,8 @@
 | # | Description | Date | Commit | Status |
 | --- | --- | --- | --- | --- |
 | 001 | Validar preparo historico e fluxo local completo com Gemini 2.5 Flash | 2026-07-12 | this commit | Done |
+| 002 | Dockerizar backend/frontend e validar `docker compose up --build` com health checks | 2026-07-12 | pending commit | Done |
+| 003 | Integrar dashboard React ao agente via `/api/predict-delay` | 2026-07-12 | pending commit | Done |
 
 ---
 
@@ -116,7 +118,7 @@
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 3 (API and Product Integration) in progress — T1-T6 and T8 done. Next: T9; T7 remains available independently.
+**Phase/Task:** Phase 4 in progress — T1-T6 and T8-T11 done. Next: T7 evaluation and T12 final documentation.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
@@ -126,8 +128,10 @@
 - T6 current branch — `backend/app/agent.py`: `DelayAgent`/`classify_order()`, latency telemetry, fallback/guardrail events and LLM-first explanation flow. 6 tests.
 - Alignment current branch — `backend/app/llm.py`: OpenAI-compatible LLM client with environment configuration and fallback-safe errors. 3 tests.
 - T8 current branch — `backend/app/api.py`: health/prediction endpoints, friendly validation and service errors, event/latency logging, prepared-data and LLM environment wiring. 5 tests.
+- T9/T10 current branch — `frontend/src/api.js`, `frontend/src/App.jsx`, `frontend/src/styles.css`, `frontend/vite.config.js`: dashboard queue state, add-order form, selected-order classification through `/api/predict-delay`, risk badges, details panel, fallback/error states and Vite dev proxy.
+- T11 current branch — Docker packaging: backend image prepares `prepared_orders.jsonl` from versioned CSVs, frontend image serves Vite build with Nginx and proxies `/api/*`, compose starts both services with health checks.
 **Test state:** 53 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes.
-**Next step:** T9 should connect the React dashboard to `POST /predict-delay`. T7 remains available independently for offline evaluation.
+**Next step:** T7 should add offline evaluation metrics; T12 should finish report/demo docs.
 **Blockers:** none active for T9. B-001 (dataset license) still open for report.
 **Uncommitted files:** none expected after the T8 commit.
 **Branch:** main.
