@@ -86,7 +86,7 @@
 
 | # | Description | Date | Commit | Status |
 | --- | --- | --- | --- | --- |
-| - | None yet | - | - | - |
+| 001 | Validar preparo historico e fluxo local completo com Gemini 2.5 Flash | 2026-07-12 | this commit | Done |
 
 ---
 
