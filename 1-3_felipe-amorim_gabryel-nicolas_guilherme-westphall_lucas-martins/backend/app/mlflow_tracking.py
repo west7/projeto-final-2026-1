@@ -6,8 +6,10 @@ is importable, so training and evaluation run unchanged without MLflow present.
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
-from app.evaluate import EvalReport
+if TYPE_CHECKING:
+    from app.evaluate import EvalReport
 
 
 def enabled() -> bool:

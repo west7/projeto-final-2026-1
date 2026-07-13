@@ -40,7 +40,8 @@ class TrainSummary:
 
 
 def _records_to_frame(records) -> pd.DataFrame:
-    return pd.DataFrame(list(records), columns=FEATURE_COLUMNS)
+    # Accepts a list of feature dicts (serving) or a DataFrame slice (cross-val); both reindex to FEATURE_COLUMNS.
+    return pd.DataFrame(records, columns=FEATURE_COLUMNS)
 
 
 def build_pipeline(cv: int = 5) -> Pipeline:

@@ -1,5 +1,19 @@
+import json
+
+from app import mlflow_tracking
 from app.data_prep import OrderFeature
-from app.evaluate import build_segment_index, compute_report, predict, render_report
+from app.evaluate import (
+    AlarmStats,
+    BandStats,
+    EvalReport,
+    bands_ordered,
+    build_segment_index,
+    compute_report,
+    predict,
+    render_report,
+    report_to_dict,
+    run_evaluation,
+)
 from app.risk_tool import HistoricalRiskTool
 from app.schemas import OrderInput
 
@@ -84,3 +98,44 @@ def test_render_report_smoke():
     text = render_report(compute_report(_clean_signal_features(), min_segment_size=5))
     assert "offline evaluation" in text
     assert "recall" in text
+
+
+def _report_with_rates(high, medium, low):
+    return EvalReport(
+        n=30,
+        base_rate=0.3,
+        bands={"high": BandStats(10, int(high * 10)), "medium": BandStats(10, int(medium * 10)),
+               "low": BandStats(10, int(low * 10))},
+        alarms={"high": AlarmStats(0, 0, 0), "medium+high": AlarmStats(0, 0, 0)},
+        fallback_rate=0.0,
+        by_state=[],
+        min_segment_size=5,
+    )
+
+
+def test_bands_ordered_detects_monotone_calibration():
+    assert bands_ordered(_report_with_rates(0.8, 0.4, 0.1)) is True
+    assert bands_ordered(_report_with_rates(0.1, 0.4, 0.8)) is False
+
+
+def test_model_scorer_produces_per_state_report_and_json(tmp_path):
+    report = run_evaluation(_clean_signal_features(), scorer="model", min_segment_size=5, cv=2)
+
+    states = {state for state, _ in report.by_state}
+    assert {"RJ", "BA"} <= states
+
+    out = tmp_path / "eval_model.json"
+    out.write_text(json.dumps(report_to_dict(report), indent=2))
+    payload = json.loads(out.read_text())
+    assert payload["n"] == 80
+    assert any(entry["state"] == "RJ" for entry in payload["by_state"])
+    assert "recall" in payload["alarms"]["high"]
+
+
+def test_run_evaluation_invokes_mlflow_log(monkeypatch):
+    calls = []
+    monkeypatch.setattr(mlflow_tracking, "log_eval_run", lambda report, params: calls.append(params))
+
+    run_evaluation(_clean_signal_features(), scorer="historical", min_segment_size=5)
+
+    assert calls == [{"scorer": "historical", "min_segment_size": 5}]

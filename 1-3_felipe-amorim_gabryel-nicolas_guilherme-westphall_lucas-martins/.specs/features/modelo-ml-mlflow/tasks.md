@@ -182,7 +182,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T6: evaluate.py — model scorer + JSON artifact + per-state
+### T6: evaluate.py — model scorer + JSON artifact + per-state ✅ DONE
 
 **What**: Add `--scorer model` (out-of-fold predictions), `--json-out`, per-state reuse, and MLflow hook.
 **Where**: `backend/app/evaluate.py` (modify) + `backend/tests/test_evaluate.py`
@@ -194,13 +194,13 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] `--scorer {historical,model}` (default historical); model path uses `cross_val_predict(cv=5, method="predict_proba")` for out-of-fold probs → `_risk_level` → existing `compute_report`.
-- [ ] `--json-out` dumps the full `EvalReport` (overall + per-band + per-state + alarm TP/FP/FN) to JSON.
-- [ ] Model report includes the per-customer-state breakdown (ML-08 AC-1).
-- [ ] Test: model scorer on a fixture produces an `EvalReport` with per-state entries and a written JSON artifact (ML-08 AC-1/AC-2).
-- [ ] Test: a bands-ordered helper (high > medium > low observed rate) exists and is asserted (ML-06 AC-3 mechanics).
-- [ ] Test: `log_eval_run` invoked (no-op when disabled) without breaking the run.
-- [ ] Gate passes; test count increases.
+- [x] `--scorer {historical,model}` (default historical); model path uses `cross_val_predict(cv=5, method="predict_proba")` for out-of-fold probs → `_risk_level` → shared `_report_from_predictions` (same math as `compute_report`).
+- [x] `--json-out` dumps the full `EvalReport` (overall + per-band + per-state + alarm TP/FP/FN) to JSON.
+- [x] Model report includes the per-customer-state breakdown (ML-08 AC-1).
+- [x] Test: model scorer on a fixture produces an `EvalReport` with per-state entries and a written JSON artifact (ML-08 AC-1/AC-2).
+- [x] Test: a bands-ordered helper (high > medium > low observed rate) exists and is asserted (ML-06 AC-3 mechanics).
+- [x] Test: `log_eval_run` invoked (no-op when disabled) without breaking the run.
+- [x] Gate passes; test count increases. 84 pass. (Also fixed `_records_to_frame` for DataFrame input and mlflow_tracking circular import — both required by the model scorer.)
 
 **Tests**: unit · **Gate**: full
 
