@@ -38,8 +38,10 @@ The generated `.jsonl` is ignored by git.
 
 ## Model (ML) — train, evaluate, MLflow
 
-The ML stack lives in a separate `requirements-ml.txt` so the API image builds
-and serves without it. Install it only where you train/evaluate:
+The ML stack lives in a separate `requirements-ml.txt`, so a historical-only
+local deployment can omit it. The current production image installs this file,
+trains the calibrated model during the build and serves with `MODEL_PATH` set.
+Install it locally when training, evaluating or running the complete test suite:
 
 ```bash
 pip install -r requirements-ml.txt

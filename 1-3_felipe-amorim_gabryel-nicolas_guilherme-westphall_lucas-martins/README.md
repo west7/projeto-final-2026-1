@@ -35,7 +35,7 @@ O fluxo de uma predição: o operador envia/seleciona um pedido no painel → o 
 
 **Exploração de abordagens (agent/model exploration):** a decisão inicial (AD-001) foi não treinar nenhum modelo supervisionado no MVP, e usar só uma ferramenta determinística de consulta a segmentos históricos - isso mantinha o foco do trabalho no ciclo agente → API → produto, guardrails e confiabilidade, em vez de otimização de modelo. Depois do MVP entregue, a equipe evoluiu essa decisão (AD-008): um classificador `HistGradientBoostingClassifier` calibrado (`CalibratedClassifierCV`, calibração isotônica) foi adicionado como fonte do número de risco, atrás do mesmo contrato `estimate_delay_risk`, com rastreamento opcional via MLflow. A ferramenta histórica continua ativa como fallback e como fonte dos fatores explicativos.
 
-**Deployment:** backend (FastAPI + Docker) e frontend (React/Vite, servido por Nginx) publicados no Render - o frontend como Static Site (sem spin-down) e o backend como Web Service Docker do plano gratuito. O dataset preparado (`prepared_orders.jsonl`) é gerado durante o build multi-stage da imagem, então a imagem final não carrega os CSVs brutos nem depende de disco persistente em runtime. Validação pública registrada em 13/07/2026: frontend HTTP 200 em 0,25s; `/health` em 4,96s; `POST /predict-delay` em 7,23s (latência interna de 6.880ms, a maior parte gasta na chamada ao Gemini; essa medição é anterior à otimização de latência descrita na seção 4, que reduziu a latência interna para ~1,1s); CORS restrito ao domínio do frontend.
+**Deployment:** backend (FastAPI + Docker) e frontend (React/Vite) publicados no Render - o frontend como Static Site (sem spin-down) e o backend como Web Service Docker do plano gratuito. A imagem local do frontend usa Nginx, enquanto o Render publica diretamente o build estático. O dataset preparado (`prepared_orders.jsonl`) é gerado durante o build multi-stage da imagem do backend, então a imagem final não carrega os CSVs brutos nem depende de disco persistente em runtime. Validação pública registrada em 13/07/2026: frontend HTTP 200 em 0,25s; `/health` em 4,96s; `POST /predict-delay` em 7,23s (latência interna de 6.880ms, a maior parte gasta na chamada ao Gemini; essa medição é anterior à otimização de latência descrita na seção 4, que reduziu a latência interna para ~1,1s); CORS restrito ao domínio do frontend.
 
 **Restrição conhecida do plano gratuito do Render:** o backend "dorme" após 15 minutos de inatividade e pode levar cerca de um minuto para acordar. O frontend mostra um estado de "preparando agente" e reconsulta `/health` por até ~90 segundos antes de liberar a classificação, em vez de travar silenciosamente.
 
@@ -54,7 +54,7 @@ O fluxo de uma predição: o operador envia/seleciona um pedido no painel → o 
 docker compose up --build
 ```
 
-Na primeira subida, o backend gera automaticamente `backend/data/prepared_orders.jsonl` a partir dos CSVs em `dataset/`. O arquivo fica em um volume Docker e é reutilizado nas próximas execuções - não precisa reprocessar o dataset a cada `up`.
+Durante o build multi-stage da imagem, o backend gera `prepared_orders.jsonl` a partir dos CSVs e treina `model.joblib`. Os dois artefatos são copiados para a imagem final; não há volume persistente do backend em runtime. Em builds seguintes, o Docker pode reutilizar essas camadas enquanto o código, as dependências e o dataset de entrada não mudarem.
 
 **Serviços disponíveis localmente:**
 
@@ -90,6 +90,7 @@ LLM_API_KEY=sua_chave
 LLM_MODEL=gemini-2.5-flash
 LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
 LLM_TIMEOUT_SECONDS=20
+LLM_REASONING_EFFORT=none
 ```
 
 Sem chave de LLM configurada, o agente continua funcionando normalmente com a explicação determinística e registra o guardrail `llm_unconfigured` - nenhuma requisição quebra por falta de credencial.
@@ -97,12 +98,21 @@ Sem chave de LLM configurada, o agente continua funcionando normalmente com a ex
 **Rodar os testes e o build (gates de qualidade):**
 
 ```bash
-# backend: 101 testes automatizados (pytest)
-cd backend && ./.venv/bin/python -m pytest -q
-
-# frontend: build de produção
-cd frontend && npm run build
+# backend: criar o ambiente e executar 101 testes automatizados
+cd backend
+python3 -m venv .venv
+./.venv/bin/pip install -r requirements.txt -r requirements-ml.txt
+./.venv/bin/python -m pytest -q
 ```
+
+```bash
+# frontend: instalar as dependencias fixadas e gerar o build de producao
+cd frontend
+npm ci
+npm run build
+```
+
+Os comandos detalhados de preparo de dados, treino e avaliacao estao em [`backend/README.md`](backend/README.md).
 
 **Rodar com MLflow (opcional, só para o rastreamento do modelo calibrado):**
 
