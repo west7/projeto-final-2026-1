@@ -4,7 +4,7 @@ import logging
 import httpx
 
 from app.api import create_app
-from app.schemas import DelayPrediction, RiskEvidence
+from app.schemas import DelayPrediction, LLMUsage, RiskEvidence
 
 
 class FakeAgent:
@@ -95,6 +95,29 @@ def test_prediction_log_includes_latency_and_event_type(caplog):
     record = next(record for record in caplog.records if record.getMessage() == "delay_prediction")
     assert record.event_type == "prediction_success"
     assert record.latency_ms >= 0
+
+
+def test_prediction_log_renders_llm_usage_in_message(caplog):
+    class AgentWithUsage(FakeAgent):
+        def classify_order(self, order):
+            prediction = super().classify_order(order)
+            prediction.llm_usage = LLMUsage(
+                model="gemini-2.5-flash",
+                prompt_tokens=226,
+                completion_tokens=99,
+                total_tokens=1026,
+            )
+            return prediction
+
+    with caplog.at_level(logging.INFO, logger="app.api"):
+        response = _request(create_app(agent=AgentWithUsage()), "POST", "/predict-delay", json=_payload())
+
+    assert response.status_code == 200
+    record = next(record for record in caplog.records if record.getMessage().startswith("delay_prediction"))
+    assert record.getMessage() == (
+        "delay_prediction llm_model=gemini-2.5-flash llm_prompt_tokens=226 "
+        "llm_completion_tokens=99 llm_total_tokens=1026"
+    )
 
 
 def test_unavailable_agent_returns_friendly_service_error():
