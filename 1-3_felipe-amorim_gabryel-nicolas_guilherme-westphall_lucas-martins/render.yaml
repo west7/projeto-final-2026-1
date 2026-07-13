@@ -19,6 +19,8 @@ services:
         sync: false
       - key: PREPARED_FEATURES_PATH
         value: /app/backend/data/prepared_orders.jsonl
+      - key: MODEL_PATH
+        value: /app/backend/data/model.joblib
 
   - type: web
     name: olist-delay-dashboard
