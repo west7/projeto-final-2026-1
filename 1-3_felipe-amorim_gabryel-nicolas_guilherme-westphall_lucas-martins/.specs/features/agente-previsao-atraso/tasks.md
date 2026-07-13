@@ -377,8 +377,8 @@ T13 ----------|
 **Done when:**
 
 - [ ] Render configuration builds the frontend and backend without local secrets.
-- [ ] Backend binds to Render's `PORT`, exposes `/health` and restricts CORS to the configured frontend origin.
-- [ ] Frontend uses the public API URL and presents a recoverable backend warm-up state.
+- [x] Backend binds to Render's `PORT`, exposes `/health` and restricts CORS to the configured frontend origin.
+- [x] Frontend uses the public API URL and presents a recoverable backend warm-up state.
 - [ ] Public smoke test covers health, Gemini prediction and deterministic fallback.
 - [ ] Memory usage and cold-start behavior are recorded in `DEPLOYMENT.md`.
 - [ ] Public URLs are available for T12.

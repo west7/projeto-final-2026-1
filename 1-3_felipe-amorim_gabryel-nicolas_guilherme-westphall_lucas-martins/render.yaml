@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: olist-delay-agent-api
+    runtime: docker
+    plan: free
+    dockerContext: ./1-3_felipe-amorim_gabryel-nicolas_guilherme-westphall_lucas-martins
+    dockerfilePath: ./1-3_felipe-amorim_gabryel-nicolas_guilherme-westphall_lucas-martins/backend/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: gemini-2.5-flash
+      - key: LLM_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/openai/
+      - key: LLM_TIMEOUT_SECONDS
+        value: 20
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: PREPARED_FEATURES_PATH
+        value: /app/backend/data/prepared_orders.jsonl
+
+  - type: web
+    name: olist-delay-dashboard
+    runtime: static
+    buildCommand: cd 1-3_felipe-amorim_gabryel-nicolas_guilherme-westphall_lucas-martins/frontend && npm ci && npm run build
+    staticPublishPath: ./1-3_felipe-amorim_gabryel-nicolas_guilherme-westphall_lucas-martins/frontend/dist
+    envVars:
+      - key: VITE_API_BASE
+        sync: false

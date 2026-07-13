@@ -3,7 +3,7 @@
 **Decisao:** Render para frontend e backend.
 **Meta de custo:** manter o MVP no plano gratuito sempre que possivel.
 **Registrado em:** 2026-07-12
-**Status:** Aprovado para implementacao.
+**Status:** Configuracao local implementada; criacao e UAT dos servicos publicos pendentes.
 
 ## Arquitetura Alvo
 
@@ -119,3 +119,22 @@ Se cold start, memoria ou disponibilidade comprometerem a demonstracao:
 - [ ] Uso de memoria fica abaixo do limite da instancia.
 - [ ] URLs finais e procedimento de demo sao registrados no README.
 - [ ] Licenca do dataset e publicacao do derivado sao confirmadas antes do deploy publico.
+
+## Implementacao e Evidencias Locais
+
+O Blueprint versionado em `1-3_felipe-amorim_gabryel-nicolas_guilherme-westphall_lucas-martins/render.yaml` cria o backend Docker e o frontend Static Site. Ao criar o Blueprint no Render, esse caminho deve ser informado explicitamente. No primeiro sync, o Render solicita os valores que nao podem ser inferidos ou versionados:
+
+- `LLM_API_KEY`: secret da API Gemini;
+- `FRONTEND_ORIGIN`: URL HTTPS final do Static Site, sem barra ao final;
+- `VITE_API_BASE`: URL HTTPS final do backend, sem barra ao final.
+
+Validacao local em 2026-07-12:
+
+- suite backend: 67 testes aprovados;
+- build de producao do frontend: aprovado;
+- imagem multi-stage: preparo de 96.470 pedidos concluido durante o build;
+- container iniciado usando `PORT=10000` e `/health` respondeu com status `ok`;
+- imagem final contem `prepared_orders.jsonl` e nao contem `/app/dataset`;
+- memoria em repouso observada no smoke local: aproximadamente 97 MiB.
+
+O valor de memoria e apenas evidencia local, nao substitui a medicao no Render. Cold start, pico durante classificacoes, URLs e smoke publico continuam pendentes.

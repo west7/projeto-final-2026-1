@@ -86,6 +86,21 @@ button:disabled {
   padding: 10px 14px;
 }
 
+.service-chip.ready {
+  background: #e5f5e8;
+  color: #24613a;
+}
+
+.service-chip.warming {
+  background: #fff3d8;
+  color: #76521b;
+}
+
+.service-chip.unavailable {
+  background: #ffe8e8;
+  color: #8f1f1f;
+}
+
 .button {
   border: 1px solid transparent;
   border-radius: 8px;

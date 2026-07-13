@@ -10,8 +10,6 @@ services:
       PREPARED_FEATURES_PATH: /app/backend/data/prepared_orders.jsonl
     ports:
       - "8000:8000"
-    volumes:
-      - backend-data:/app/backend/data
     restart: unless-stopped
 
   frontend:
@@ -24,6 +22,3 @@ services:
     ports:
       - "5173:80"
     restart: unless-stopped
-
-volumes:
-  backend-data:

@@ -1,4 +1,4 @@
-const API_BASE = "/api";
+const API_BASE = (import.meta.env.VITE_API_BASE || "/api").replace(/\/$/, "");
 
 export async function predictDelay(order) {
   const response = await fetch(`${API_BASE}/predict-delay`, {
@@ -19,6 +19,27 @@ export async function predictDelay(order) {
   }
 
   return body;
+}
+
+export async function waitForApiReady({ attempts = 12, delayMs = 3000 } = {}) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const response = await fetch(`${API_BASE}/health`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (response.ok) {
+        return true;
+      }
+    } catch {
+      // A free Render service can refuse or time out while it wakes up.
+    }
+
+    if (attempt < attempts - 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+    }
+  }
+
+  return false;
 }
 
 async function readJson(response) {

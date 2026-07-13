@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-12
-**Current Work:** agente-previsao-atraso - executing (T1-T11, T7, T13 complete; T14 deploy next)
+**Current Work:** agente-previsao-atraso - executing (T14 Render preparation complete; public deploy/UAT next)
 
 ---
 
@@ -108,6 +108,7 @@ _None active._
 | 004 | Carregar ambiente Gemini no Compose e publicar dados preparados atomicamente | 2026-07-12 | `1b06215` | Done |
 | 005 | Exibir respostas da LLM e fallbacks em linguagem amigavel | 2026-07-12 | `c062748` | Done |
 | 006 | Validar dashboard mobile em 320 px, paisagem, loading, erro e rolagem da tabela | 2026-07-12 | this commit | Done |
+| 007 | Manter o Blueprint do Render dentro da pasta de entrega do grupo | 2026-07-13 | this commit | Done |
 
 ---
 
@@ -139,7 +140,7 @@ _None active._
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 4 in progress — T1-T11, T7, T13 done. Next: T14 Render deployment, then AD-006 and T12 report/demo documentation.
+**Phase/Task:** Phase 4 in progress — T1-T11, T7, T13 done; T14 repository preparation complete. Next: create the Render Blueprint services and run public UAT, then AD-006 and T12.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
@@ -155,8 +156,8 @@ _None active._
 - T13 current branch — LLM token telemetry: `llm.py` parses `usage` into prompt/completion/total tokens (no server-side cost — reasoning models bill total > prompt+completion, so cost is derived offline in the report); `schemas.py` adds `LLMUsage` and `DelayPrediction.llm_usage`; `agent.py` threads usage through (null on deterministic/fallback paths); `api.py` logs `llm_model` + token counts. Live-verified against gemini-2.5-flash (226/99/1026 tokens). Closes DELAY-08 (report derives cost). 4 tests.
 - Reliability fixes `1b06215`/`c062748` — Compose loads `backend/.env`, prepared data is published atomically, Gemini returns plain text and the UI accumulates friendly fallback messages.
 - T10 mobile UAT — passed at 320 px and landscape for table scrolling, form flow, loading/success, API error recovery and result readability. Physical-device numeric keyboard behavior was not tested; inputs use numeric `inputMode` hints.
-**Test state:** 66 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes; Docker smoke passed for backend health, Nginx proxy, frontend and Gemini prediction.
-**Next step:** Execute T14: prepare Render configuration, deploy frontend/backend and validate the public smoke criteria in `DEPLOYMENT.md`. Then implement AD-006 and finish T12 with evidence from the deployed environment.
+**Test state:** 67 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes with `VITE_API_BASE`; Render-target Docker image builds and starts on `PORT=10000`, health passes, raw CSVs are absent from runtime and idle memory was ~97 MiB locally.
+**Next step:** Sync `1-3_felipe-amorim_gabryel-nicolas_guilherme-westphall_lucas-martins/render.yaml` as a Render Blueprint, provide the three prompted environment values and validate the public smoke criteria in `DEPLOYMENT.md`. Then implement AD-006 and finish T12 with evidence from the deployed environment.
 **Blockers:** none active for T12. B-001 (dataset license) still open for report.
 **Uncommitted files:** none expected after the reliability documentation commit.
 **Branch:** main.

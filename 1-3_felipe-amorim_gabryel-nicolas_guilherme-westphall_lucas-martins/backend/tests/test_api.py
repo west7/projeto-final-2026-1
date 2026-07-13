@@ -57,6 +57,35 @@ def test_health_returns_service_status():
     assert response.json() == {"status": "ok", "service": "olist-delay-agent"}
 
 
+def test_cors_allows_only_configured_frontend_origin(monkeypatch):
+    monkeypatch.setenv("FRONTEND_ORIGIN", "https://olist-delay-dashboard.onrender.com")
+    app = create_app(agent=FakeAgent())
+
+    allowed = _request(
+        app,
+        "OPTIONS",
+        "/predict-delay",
+        headers={
+            "Origin": "https://olist-delay-dashboard.onrender.com",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    denied = _request(
+        app,
+        "OPTIONS",
+        "/predict-delay",
+        headers={
+            "Origin": "https://example.com",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert allowed.status_code == 200
+    assert allowed.headers["access-control-allow-origin"] == "https://olist-delay-dashboard.onrender.com"
+    assert denied.status_code == 400
+    assert "access-control-allow-origin" not in denied.headers
+
+
 def test_predict_delay_returns_agent_prediction():
     response = _request(create_app(agent=FakeAgent()), "POST", "/predict-delay", json=_payload())
 

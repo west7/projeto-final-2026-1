@@ -8,6 +8,7 @@ from time import perf_counter
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.agent import DelayAgent
@@ -28,6 +29,14 @@ def create_app(agent=_UNSET, startup_error: str | None = None) -> FastAPI:
     api = FastAPI(title="Olist Delay Agent API")
     api.state.agent = agent
     api.state.startup_error = startup_error
+    frontend_origin = os.getenv("FRONTEND_ORIGIN", "").strip().rstrip("/")
+    if frontend_origin:
+        api.add_middleware(
+            CORSMiddleware,
+            allow_origins=[frontend_origin],
+            allow_methods=["GET", "POST"],
+            allow_headers=["Content-Type"],
+        )
 
     @api.exception_handler(RequestValidationError)
     async def validation_error_handler(request: Request, exc: RequestValidationError):

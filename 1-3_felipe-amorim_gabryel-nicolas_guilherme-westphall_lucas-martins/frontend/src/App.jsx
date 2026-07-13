@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { predictDelay } from "./api";
+import { predictDelay, waitForApiReady } from "./api";
 
 const initialOrders = [
   {
@@ -82,6 +82,23 @@ function App() {
   const [form, setForm] = useState(initialForm);
   const [formError, setFormError] = useState("");
   const [isClassifying, setIsClassifying] = useState(false);
+  const [serviceStatus, setServiceStatus] = useState("warming");
+
+  useEffect(() => {
+    let active = true;
+
+    async function warmUpBackend() {
+      const ready = await waitForApiReady();
+      if (active) {
+        setServiceStatus(ready ? "ready" : "unavailable");
+      }
+    }
+
+    warmUpBackend();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const activeOrder = orders.find((order) => order.id === activeOrderId) ?? orders[0] ?? null;
   const selectedCount = selectedOrderIds.size;
@@ -139,7 +156,7 @@ function App() {
   }
 
   async function classifySelected() {
-    if (selectedOrderIds.size === 0 || isClassifying) {
+    if (selectedOrderIds.size === 0 || isClassifying || serviceStatus !== "ready") {
       return;
     }
 
@@ -156,6 +173,12 @@ function App() {
     const selectedOrders = orders.filter((order) => ids.has(order.id));
     await Promise.all(selectedOrders.map((order) => classifyOrder(order)));
     setIsClassifying(false);
+  }
+
+  async function retryBackend() {
+    setServiceStatus("warming");
+    const ready = await waitForApiReady();
+    setServiceStatus(ready ? "ready" : "unavailable");
   }
 
   async function classifyOrder(order) {
@@ -190,7 +213,16 @@ function App() {
           <p className="eyebrow">Trilha 1.3</p>
           <h1>Torre de controle de entregas</h1>
         </div>
-        <div className="service-chip">API via /api/predict-delay</div>
+        <div className="topbar-actions">
+          <div className={`service-chip ${serviceStatus}`} aria-live="polite">
+            {serviceStatusText(serviceStatus)}
+          </div>
+          {serviceStatus === "unavailable" ? (
+            <button className="button secondary" type="button" onClick={retryBackend}>
+              Tentar novamente
+            </button>
+          ) : null}
+        </div>
       </header>
 
       <section className="summary-grid" aria-label="Resumo operacional">
@@ -312,7 +344,7 @@ function App() {
             <button
               className="button secondary"
               type="button"
-              disabled={selectedCount === 0 || isClassifying}
+              disabled={selectedCount === 0 || isClassifying || serviceStatus !== "ready"}
               onClick={classifySelected}
             >
               {isClassifying ? "Classificando..." : `Classificar selecionados (${selectedCount})`}
@@ -389,6 +421,16 @@ function Metric({ label, value }) {
       <strong>{value}</strong>
     </article>
   );
+}
+
+function serviceStatusText(status) {
+  if (status === "ready") {
+    return "Agente pronto";
+  }
+  if (status === "unavailable") {
+    return "Agente indisponivel";
+  }
+  return "Preparando agente...";
 }
 
 function UfSelect({ value, onChange }) {
