@@ -1,0 +1,285 @@
+{
+  "n": 96470,
+  "base_rate": 0.08112366538820359,
+  "fallback_rate": 0.0,
+  "min_segment_size": 30,
+  "bands_ordered": true,
+  "bands": {
+    "high": {
+      "n": 9129,
+      "delayed": 2943,
+      "observed_rate": 0.32237923102201776
+    },
+    "medium": {
+      "n": 14524,
+      "delayed": 2074,
+      "observed_rate": 0.14279812723767557
+    },
+    "low": {
+      "n": 72817,
+      "delayed": 2809,
+      "observed_rate": 0.03857615666671244
+    }
+  },
+  "alarms": {
+    "high": {
+      "tp": 2943,
+      "fp": 6186,
+      "fn": 4883,
+      "recall": 0.3760541783797598,
+      "precision": 0.32237923102201776
+    },
+    "medium+high": {
+      "tp": 5017,
+      "fp": 18636,
+      "fn": 2809,
+      "recall": 0.6410682340914899,
+      "precision": 0.21210840062571343
+    }
+  },
+  "by_state": [
+    {
+      "state": "SP",
+      "n": 40494,
+      "delayed": 2387,
+      "flagged_delayed": 462,
+      "fallback": 0,
+      "recall": 0.1935483870967742,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "RJ",
+      "n": 12350,
+      "delayed": 1664,
+      "flagged_delayed": 1064,
+      "fallback": 0,
+      "recall": 0.6394230769230769,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "MG",
+      "n": 11354,
+      "delayed": 637,
+      "flagged_delayed": 167,
+      "fallback": 0,
+      "recall": 0.2621664050235479,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "RS",
+      "n": 5344,
+      "delayed": 382,
+      "flagged_delayed": 72,
+      "fallback": 0,
+      "recall": 0.18848167539267016,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "PR",
+      "n": 4923,
+      "delayed": 246,
+      "flagged_delayed": 28,
+      "fallback": 0,
+      "recall": 0.11382113821138211,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "SC",
+      "n": 3546,
+      "delayed": 346,
+      "flagged_delayed": 124,
+      "fallback": 0,
+      "recall": 0.3583815028901734,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "BA",
+      "n": 3256,
+      "delayed": 457,
+      "flagged_delayed": 236,
+      "fallback": 0,
+      "recall": 0.5164113785557987,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "DF",
+      "n": 2080,
+      "delayed": 147,
+      "flagged_delayed": 39,
+      "fallback": 0,
+      "recall": 0.2653061224489796,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "ES",
+      "n": 1995,
+      "delayed": 244,
+      "flagged_delayed": 128,
+      "fallback": 0,
+      "recall": 0.5245901639344263,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "GO",
+      "n": 1957,
+      "delayed": 160,
+      "flagged_delayed": 65,
+      "fallback": 0,
+      "recall": 0.40625,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "PE",
+      "n": 1593,
+      "delayed": 172,
+      "flagged_delayed": 40,
+      "fallback": 0,
+      "recall": 0.23255813953488372,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "CE",
+      "n": 1279,
+      "delayed": 196,
+      "flagged_delayed": 133,
+      "fallback": 0,
+      "recall": 0.6785714285714286,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "PA",
+      "n": 946,
+      "delayed": 117,
+      "flagged_delayed": 47,
+      "fallback": 0,
+      "recall": 0.4017094017094017,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "MT",
+      "n": 886,
+      "delayed": 60,
+      "flagged_delayed": 9,
+      "fallback": 0,
+      "recall": 0.15,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "MA",
+      "n": 717,
+      "delayed": 141,
+      "flagged_delayed": 105,
+      "fallback": 0,
+      "recall": 0.7446808510638298,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "MS",
+      "n": 701,
+      "delayed": 81,
+      "flagged_delayed": 45,
+      "fallback": 0,
+      "recall": 0.5555555555555556,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "PB",
+      "n": 517,
+      "delayed": 57,
+      "flagged_delayed": 11,
+      "fallback": 0,
+      "recall": 0.19298245614035087,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "PI",
+      "n": 476,
+      "delayed": 76,
+      "flagged_delayed": 44,
+      "fallback": 0,
+      "recall": 0.5789473684210527,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "RN",
+      "n": 474,
+      "delayed": 51,
+      "flagged_delayed": 16,
+      "fallback": 0,
+      "recall": 0.3137254901960784,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "AL",
+      "n": 397,
+      "delayed": 95,
+      "flagged_delayed": 66,
+      "fallback": 0,
+      "recall": 0.6947368421052632,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "SE",
+      "n": 335,
+      "delayed": 51,
+      "flagged_delayed": 27,
+      "fallback": 0,
+      "recall": 0.5294117647058824,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "TO",
+      "n": 274,
+      "delayed": 35,
+      "flagged_delayed": 15,
+      "fallback": 0,
+      "recall": 0.42857142857142855,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "RO",
+      "n": 243,
+      "delayed": 7,
+      "flagged_delayed": 0,
+      "fallback": 0,
+      "recall": 0.0,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "AM",
+      "n": 145,
+      "delayed": 6,
+      "flagged_delayed": 0,
+      "fallback": 0,
+      "recall": 0.0,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "AC",
+      "n": 80,
+      "delayed": 3,
+      "flagged_delayed": 0,
+      "fallback": 0,
+      "recall": 0.0,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "AP",
+      "n": 67,
+      "delayed": 3,
+      "flagged_delayed": 0,
+      "fallback": 0,
+      "recall": 0.0,
+      "fallback_rate": 0.0
+    },
+    {
+      "state": "RR",
+      "n": 41,
+      "delayed": 5,
+      "flagged_delayed": 0,
+      "fallback": 0,
+      "recall": 0.0,
+      "fallback_rate": 0.0
+    }
+  ]
+}

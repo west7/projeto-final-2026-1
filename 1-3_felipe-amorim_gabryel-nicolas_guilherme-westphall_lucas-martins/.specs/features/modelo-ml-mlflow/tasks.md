@@ -227,7 +227,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T8: Generate real report evidence (train + both evals)
+### T8: Generate real report evidence (train + both evals) ✅ DONE
 
 **What**: Build prepared data if absent, train the real model, run both scorers, capture the committed comparison artifacts.
 **Where**: `backend/data/model.joblib` (gitignored), `backend/data/eval_historical.json` + `eval_model.json` (committed), evidence note
@@ -239,10 +239,10 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] `prepared_orders.jsonl` exists (built if missing) and model trained on real data.
-- [ ] `eval_historical.json` and `eval_model.json` produced and committed.
-- [ ] Recorded: model high-alarm recall **> 5.5%** and bands ordered (high > medium > low). **If the bar is not met, STOP and escalate** (tune within reason, or record as an honest documented limitation) — never silently pass.
-- [ ] Per-state comparison (baseline vs model) captured for the ethics section.
+- [x] `prepared_orders.jsonl` exists (built if missing) and model trained on real data. (96,470 orders, 7,826 delayed)
+- [x] `eval_historical.json` and `eval_model.json` produced and committed.
+- [x] Recorded: model high-alarm recall **37.6%** (> baseline 5.5%) and bands ordered (high 32.2% > medium 14.3% > low 3.9%). Bar cleared.
+- [x] Per-state comparison (baseline vs model) captured in both JSONs (e.g. SP 1.7%→19.4%, RJ 9.5%→63.9%, DF/SC/BA 0%→26.5%/35.8%/51.6% recall).
 
 **Tests**: none (evidence gate) · **Gate**: build (real-run numbers recorded)
 
