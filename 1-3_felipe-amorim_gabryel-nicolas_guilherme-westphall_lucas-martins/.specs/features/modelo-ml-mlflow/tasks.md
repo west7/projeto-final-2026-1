@@ -136,7 +136,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T4: ModelRiskTool (compose + graceful fallback)
+### T4: ModelRiskTool (compose + graceful fallback) ✅ DONE
 
 **What**: Risk tool that takes the number from the model and evidence from the historical tool; degrades to historical on any model failure.
 **Where**: `backend/app/model_risk_tool.py` (new) + `backend/tests/test_model_risk_tool.py`
@@ -148,13 +148,13 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] `estimate_delay_risk(order)`: `ev = historical.estimate`; if model present, override `risk_score`/`risk_level` (via `_risk_level(p)`) and prepend a "score do modelo calibrado: …" factor; else return `ev` unchanged.
-- [ ] `from_paths(prepared_path, model_path)`: guarded import — missing sklearn/joblib **or** missing/corrupt model file → `model=None` (never raises).
-- [ ] Test: with a model, score comes from the model and `risk_level` matches `_risk_level(p)` (ML-01).
-- [ ] Test: `factors`/`segment_used`/`sample_size` preserved from historical so the output guardrail passes (ML-05).
-- [ ] Test: `model=None`, missing file, and corrupt file each fall back to historical output (ML-04).
-- [ ] Test: order missing optional fields still returns a model score (no fallback from missing fields alone).
-- [ ] Gate passes; test count increases.
+- [x] `estimate_delay_risk(order)`: `ev = historical.estimate`; if model present, override `risk_score`/`risk_level` (via `_risk_level(p)`) and prepend a "score do modelo calibrado: …" factor; else return `ev` unchanged.
+- [x] `from_paths(prepared_path, model_path)`: guarded import — missing sklearn/joblib **or** missing/corrupt model file → `model=None` (never raises).
+- [x] Test: with a model, score comes from the model and `risk_level` matches `_risk_level(p)` (ML-01).
+- [x] Test: `factors`/`segment_used`/`sample_size` preserved from historical so the output guardrail passes (ML-05).
+- [x] Test: `model=None`, missing file, and corrupt file each fall back to historical output (ML-04).
+- [x] Test: order missing optional fields still returns a model score (no fallback from missing fields alone).
+- [x] Gate passes; test count increases. 79 pass.
 
 **Tests**: unit · **Gate**: quick
 
