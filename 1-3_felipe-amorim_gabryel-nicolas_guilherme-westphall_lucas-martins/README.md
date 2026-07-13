@@ -111,6 +111,12 @@ docker compose --profile mlflow up --build
 # painel do MLflow em http://localhost:5000
 ```
 
+O MLflow registra os parâmetros e as métricas de cada avaliação e versiona o modelo calibrado no model registry:
+
+![Detalhe de uma run no MLflow: parâmetros (scorer, min_segment_size) e métricas de avaliação (recall, precisão, taxas observadas por faixa, fallback) registrados](assets/mlflow-run.png)
+
+![Model registry do MLflow: modelo `delay-risk` com a versão 1 registrada a partir da run de treino](assets/mlflow-model.png)
+
 **Usando a versão em produção (sem instalar nada):** basta abrir o frontend em https://olist-delay-dashboard.onrender.com/ - não é necessário rodar nada localmente para avaliar o sistema. Só é preciso lembrar que o backend gratuito do Render pode levar cerca de um minuto para "acordar" na primeira requisição depois de um período ocioso (cold start).
 
 ---
@@ -151,7 +157,11 @@ docker compose --profile mlflow up --build
 
 O modelo calibrado (`HistGradientBoostingClassifier` + `CalibratedClassifierCV`) eleva bastante o recall de casos críticos e elimina o fallback por amostra insuficiente, porque não depende de segmentos com poucos exemplos. As faixas de risco permanecem monotônicas em ambas as abordagens (risco "alto" observado > "médio" > "baixo"), o que indica calibração coerente.
 
+![Gráfico de barras comparando baseline histórico e modelo calibrado em quatro métricas: recall do alarme alto (5,5% para 37,6%), precisão do alarme alto (20,3% para 32,2%), recall médio+alto (44,9% para 64,1%) e taxa de fallback (21,4% para 0%)](assets/eval-metrics.png)
+
 **Por estado (baseline → modelo), recall de detecção de atraso:** SP 1,7% → 19,4%; RJ 9,5% → 63,9%; MG 0% → 26,2%; DF 0% → 26,5%; SC 0% → 35,8%; BA 0% → 51,6%. O baseline histórico praticamente não detectava atraso em vários estados (recall 0%) por falta de amostra suficiente nesses recortes; o modelo calibrado reduz essa disparidade de forma relevante, embora ainda existam diferenças entre estados.
+
+![Gráfico de barras horizontais do recall de detecção de atraso por estado (n ≥ 1.000), comparando baseline histórico e modelo calibrado; o baseline tem recall 0% em vários estados (MG, RS, PR, SC, BA, DF, GO, PE) enquanto o modelo calibrado detecta atrasos em todos eles](assets/eval-by-state.png)
 
 ### Latência e custo por chamada (antes → depois)
 
@@ -162,7 +172,11 @@ Quase toda a latência de uma predição está na chamada à LLM, não no núcle
 | Antes (raciocínio ligado) | ~4,7s | ~6,9s | 1.178 |
 | Depois (`reasoning_effort=none`) | ~0,9s | **~1,1s** | 307 |
 
+![Gráficos de barras do efeito de desligar o raciocínio do Gemini 2.5 Flash: latência da chamada à LLM cai de 4,7s para 0,9s e ponta a ponta de 6,9s para 1,1s; tokens por chamada caem de 1.178 para 307](assets/eval-latency.png)
+
 Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~870 tokens de raciocínio oculto foram eliminados: para uma tarefa de reescrita das evidências, zero raciocínio é adequado. A redução de ~5x na latência e de ~74% nos tokens também simplifica o custo: com o raciocínio desligado, `total ≈ prompt + conclusão`, então a estimativa de custo por chamada deixa de ser inflada por tokens de raciocínio. A latência interna (`latency_ms`) e a contagem de tokens são registradas na telemetria de cada requisição, o que permite acompanhar esses números em produção.
+
+![Painel "Torre de controle de entregas": fila de pedidos e o detalhe do pedido BR-AL-001 classificado com risco Alto 55,3%, evidências (confiança, amostra, recorte, latência) e a explicação gerada pela LLM com a ação recomendada](assets/dashboard.png)
 
 **UX:** o painel exibe o nível de risco como badge, a explicação e a ação recomendada lado a lado, e trata de forma visível os estados de fallback (LLM indisponível), erro de API e carregamento - inclusive o estado de "aquecendo" durante o cold start do plano gratuito do Render. Validação manual em mobile (320px, paisagem) cobriu rolagem de tabela, formulário, loading e recuperação de erro; o comportamento do teclado numérico em dispositivo físico não foi testado (os campos usam apenas a dica `inputMode="numeric"`).
 
