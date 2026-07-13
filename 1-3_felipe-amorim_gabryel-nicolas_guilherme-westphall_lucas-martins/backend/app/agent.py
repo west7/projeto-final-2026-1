@@ -5,7 +5,7 @@ from collections.abc import Callable
 from time import perf_counter
 
 from app.explanation import ExplanationResult, OutputGuardrailError, explain_risk, safe_explanation
-from app.llm import LLMResult
+from app.llm import LLMClientError, LLMResult
 from app.schemas import DelayPrediction, LLMUsage, OrderInput, RiskEvidence
 
 LLMClient = Callable[[OrderInput, RiskEvidence, ExplanationResult], "str | LLMResult"]
@@ -62,6 +62,10 @@ class DelayAgent:
 
         try:
             generated = self.llm_client(order, evidence, fallback)
+        except LLMClientError as exc:
+            event = "llm_fallback:rate_limited" if str(exc) == "llm_rate_limited" else "llm_fallback"
+            guardrails.append(event)
+            return fallback.explanation, fallback.recommended_action, None
         except Exception:
             guardrails.append("llm_fallback")
             return fallback.explanation, fallback.recommended_action, None

@@ -169,6 +169,22 @@ def test_prediction_log_renders_llm_usage_in_message(caplog):
     )
 
 
+def test_prediction_log_includes_guardrail_reason(caplog):
+    class RateLimitedAgent(FakeAgent):
+        def classify_order(self, order):
+            prediction = super().classify_order(order)
+            prediction.guardrails = ["llm_fallback:rate_limited"]
+            return prediction
+
+    with caplog.at_level(logging.INFO, logger="app.api"):
+        response = _request(create_app(agent=RateLimitedAgent()), "POST", "/predict-delay", json=_payload())
+
+    assert response.status_code == 200
+    record = next(record for record in caplog.records if record.getMessage() == "delay_prediction")
+    assert record.event_type == "prediction_fallback"
+    assert record.guardrails == ["llm_fallback:rate_limited"]
+
+
 def test_unavailable_agent_returns_friendly_service_error():
     response = _request(
         create_app(agent=None, startup_error="prepared_data_not_found"),

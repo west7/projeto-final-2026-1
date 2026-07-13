@@ -6,7 +6,7 @@
 
 - Backend automated tests are configured with pytest.
 - Frontend has a build gate: `npm run build` from `frontend`.
-- Backend has a full gate with 93 collected tests. Because collection imports the ML modules, install both `requirements.txt` and `requirements-ml.txt`.
+- Backend has a full gate with 101 tests. Because collection imports the ML modules, install both `requirements.txt` and `requirements-ml.txt`.
 
 ## Test Coverage Matrix
 
@@ -54,5 +54,5 @@ cd ../backend
 ## Test Count Baseline
 
 - Frontend automated tests: 0.
-- Backend automated tests: 93 collected before the final refinements.
+- Backend automated tests: 101 after structured LLM output and quota-handling refinements.
 - Build gate exists but no test assertions yet.

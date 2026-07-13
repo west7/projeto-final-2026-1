@@ -89,7 +89,10 @@ class OpenAICompatibleLLMClient:
         try:
             with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
                 body = json.loads(response.read().decode("utf-8"))
-        except (OSError, urllib.error.HTTPError, json.JSONDecodeError) as exc:
+        except urllib.error.HTTPError as exc:
+            reason = "llm_rate_limited" if exc.code == 429 else "llm_request_failed"
+            raise LLMClientError(reason) from exc
+        except (OSError, json.JSONDecodeError) as exc:
             raise LLMClientError("llm_request_failed") from exc
 
         try:

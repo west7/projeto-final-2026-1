@@ -327,7 +327,9 @@ function App() {
     );
 
     const selectedOrders = orders.filter((order) => ids.has(order.id));
-    await Promise.all(selectedOrders.map((order) => classifyOrder(order)));
+    for (const order of selectedOrders) {
+      await classifyOrder(order);
+    }
     setIsClassifying(false);
   }
 
@@ -805,7 +807,9 @@ function fallbackText(prediction) {
     messages.push("A explicacao foi produzida pelo fallback deterministico porque a LLM nao esta configurada.");
   }
 
-  if (prediction.guardrails.includes("llm_fallback:action_mismatch")) {
+  if (prediction.guardrails.includes("llm_fallback:rate_limited")) {
+    messages.push("A cota da LLM foi atingida; a resposta segura foi utilizada.");
+  } else if (prediction.guardrails.includes("llm_fallback:action_mismatch")) {
     messages.push("A acao sugerida pela LLM nao era compativel com a politica segura e foi substituida.");
   } else if (prediction.guardrails.some((event) => event.startsWith("llm_fallback"))) {
     messages.push("A LLM estava indisponivel e a explicacao segura foi usada.");

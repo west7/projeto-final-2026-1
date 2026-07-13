@@ -38,7 +38,7 @@ T13 ----------|
 ### Phase 5: Final Refinements
 
 ```text
-T12 -> T15 -> T16 -> T17 -> T18
+T12 -> T15 -> T16 -> T17 -> T18 -> T19
 ```
 
 ---
@@ -467,6 +467,26 @@ T12 -> T15 -> T16 -> T17 -> T18
 **Tests:** build/smoke + manual UAT
 **Gate:** frontend build gate
 
+---
+
+### T19: Handle LLM quota exhaustion transparently
+
+**What:** Serialize batch classifications, identify provider HTTP 429 and expose the rate-limit fallback reason in logs and UI.
+**Where:** `backend/app/llm.py`, `backend/app/agent.py`, `backend/app/api.py`, `frontend/src/App.jsx` and co-located tests
+**Depends on:** T18
+**Requirement:** DELAY-06, DELAY-07, DELAY-08
+
+**Done when:**
+
+- [x] Selected orders call the API one at a time instead of creating an LLM request burst.
+- [x] HTTP 429 maps to `llm_fallback:rate_limited` without automatic retry.
+- [x] Structured logs include the exact guardrail list without exposing provider credentials or raw errors.
+- [x] The dashboard explains that the LLM quota was reached and keeps the deterministic response visible.
+- [x] Backend tests and frontend build pass.
+
+**Tests:** unit/integration + build/smoke
+**Gate:** full local gate
+
 ```text
 Phase 1:
   T1 -> T2 -> T3
@@ -486,7 +506,7 @@ Phase 4:
   T13 ----------|
 
 Phase 5:
-  T12 -> T15 -> T16 -> T17 -> T18
+  T12 -> T15 -> T16 -> T17 -> T18 -> T19
 ```
 
 **Parallelism constraint:** No task is marked `[P]` yet because backend test isolation is not established. After T1 defines isolated test fixtures, T7 can potentially run in parallel with T5/T6.

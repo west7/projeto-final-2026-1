@@ -24,7 +24,7 @@ _UNSET = object()
 _DEFAULT_PREPARED_PATH = Path(__file__).resolve().parents[1] / "data" / "prepared_orders.jsonl"
 
 _TELEMETRY_FIELDS = (
-    "event_type", "latency_ms", "llm_model",
+    "event_type", "latency_ms", "guardrails", "llm_model",
     "llm_prompt_tokens", "llm_completion_tokens", "llm_total_tokens",
 )
 
@@ -117,7 +117,11 @@ def create_app(agent=_UNSET, startup_error: str | None = None) -> FastAPI:
             )
 
         event_type = "prediction_fallback" if prediction.fallback_used or prediction.guardrails else "prediction_success"
-        extra = {"event_type": event_type, "latency_ms": _elapsed_ms(started)}
+        extra = {
+            "event_type": event_type,
+            "latency_ms": _elapsed_ms(started),
+            "guardrails": prediction.guardrails,
+        }
         message = "delay_prediction"
         if prediction.llm_usage is not None:
             usage = prediction.llm_usage

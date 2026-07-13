@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-13
-**Current Work:** agente-previsao-atraso - T15-T18 complete; remaining Render UAT documented separately
+**Current Work:** agente-previsao-atraso - T15-T19 complete; remaining Render UAT documented separately
 
 ---
 
@@ -148,10 +148,11 @@ _None active._
 ## Handoff
 
 **Feature:** agente-previsao-atraso — final refinements on `main`.
-**Current task:** T15-T18 concluidas. Proximo passo opcional e validar cold start, fallback publico e memoria no Render.
+**Current task:** T15-T19 concluidas. Proximo passo opcional e validar cold start, fallback publico e memoria no Render.
 **Implemented baseline:** public Render frontend/API, calibrated model behind `ModelRiskTool`, historical evidence/fallback, optional MLflow, report and demo video.
 **Evaluation evidence:** 96,470 orders; high-alarm recall 5.5% -> 37.6%, precision 20.3% -> 32.2%, fallback 21.4% -> 0%; committed in `backend/data/eval_{historical,model}.json`.
 **Public URLs:** `https://olist-delay-dashboard.onrender.com/` and `https://olist-delay-agent-api.onrender.com/`.
-**Test state:** 98 backend tests aprovados apos AD-006; o ambiente local instala ambos os arquivos de requisitos.
-**Remaining deploy UAT:** controlled cold start, public deterministic fallback and Render memory observation. These do not block T15-T18.
+**Test state:** 101 backend tests aprovados; build de producao do frontend aprovado.
+**Quota behavior:** Gemini Free retornou HTTP 429 apos atingir 20 requisicoes diarias por projeto/modelo. T19 serializa lotes e registra/exibe `llm_fallback:rate_limited`; nao tenta contornar a cota nem faz retry inutil.
+**Remaining deploy UAT:** controlled cold start, public deterministic fallback and Render memory observation. These do not block T15-T19.
 **Blockers:** none.

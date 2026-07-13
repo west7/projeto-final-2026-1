@@ -116,6 +116,19 @@ def test_llm_failure_falls_back_to_deterministic_text():
     assert prediction.guardrails == ["llm_fallback"]
 
 
+def test_llm_rate_limit_has_specific_fallback_event():
+    from app.llm import LLMClientError
+
+    def rate_limited_client(order, evidence, fallback):
+        raise LLMClientError("llm_rate_limited")
+
+    prediction = DelayAgent(FakeRiskTool(_evidence()), llm_client=rate_limited_client).classify_order(_order())
+
+    assert "amostra historica: 40 pedidos" in prediction.explanation
+    assert prediction.guardrails == ["llm_fallback:rate_limited"]
+    assert prediction.llm_usage is None
+
+
 def test_llm_result_usage_is_attached_to_prediction():
     from app.llm import LLMResult
     from app.schemas import LLMGeneratedResponse, LLMUsage

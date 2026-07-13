@@ -97,7 +97,7 @@ Sem chave de LLM configurada, o agente continua funcionando normalmente com a ex
 **Rodar os testes e o build (gates de qualidade):**
 
 ```bash
-# backend: 98 testes automatizados (pytest)
+# backend: 101 testes automatizados (pytest)
 cd backend && ./.venv/bin/python -m pytest -q
 
 # frontend: build de produção
@@ -178,9 +178,9 @@ Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~
 
 ![Painel "Torre de controle de entregas": fila de pedidos e o detalhe do pedido BR-AL-001 classificado com risco Alto 55,3%, evidências (confiança, amostra, recorte, latência) e a explicação gerada pela LLM com a ação recomendada](assets/dashboard.png)
 
-**UX:** o painel exibe o nível de risco como badge, a explicação e a ação recomendada lado a lado, e trata de forma visível os estados de fallback (LLM indisponível ou ação incompatível), erro de API e carregamento - inclusive o estado de "aquecendo" durante o cold start do plano gratuito do Render. O resumo da sessão agrega classificados, risco alto, latência média, ocorrências de fallback/guardrail e tokens LLM; o detalhe identifica modelo e tokens da chamada, sem criar persistência ou um novo endpoint. Validação manual em mobile (320px, paisagem) cobriu rolagem de tabela, formulário, loading e recuperação de erro; o teclado numérico também foi confirmado em dispositivo físico.
+**UX:** o painel exibe o nível de risco como badge, a explicação e a ação recomendada lado a lado, e trata de forma visível os estados de fallback (LLM indisponível, cota esgotada ou ação incompatível), erro de API e carregamento - inclusive o estado de "aquecendo" durante o cold start do plano gratuito do Render. Pedidos selecionados são classificados sequencialmente para evitar rajadas contra o provedor; isso reduz picos, mas não contorna a cota diária. O resumo da sessão agrega classificados, risco alto, latência média, ocorrências de fallback/guardrail e tokens LLM; o detalhe identifica modelo e tokens da chamada, sem criar persistência ou um novo endpoint. Validação manual em mobile (320px, paisagem) cobriu rolagem de tabela, formulário, loading e recuperação de erro; o teclado numérico também foi confirmado em dispositivo físico.
 
-**Testes automatizados:** 98 testes de backend (`pytest`), 0 falhas, cobrindo schemas/guardrails de entrada, ferramenta de risco, explicação/fallback, agente, API, cliente LLM, preparo de dados, encoding de features, treino, avaliação e MLflow. O frontend tem gate de build (`npm run build`), sem testes automatizados de componente.
+**Testes automatizados:** 101 testes de backend (`pytest`), 0 falhas, cobrindo schemas/guardrails de entrada, ferramenta de risco, explicação/fallback, agente, API, cliente LLM, preparo de dados, encoding de features, treino, avaliação e MLflow. O frontend tem gate de build (`npm run build`), sem testes automatizados de componente.
 
 ---
 

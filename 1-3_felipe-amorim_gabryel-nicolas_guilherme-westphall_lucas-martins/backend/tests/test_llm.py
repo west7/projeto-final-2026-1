@@ -1,4 +1,5 @@
 import json
+import urllib.error
 
 from app.explanation import ExplanationResult
 import pytest
@@ -184,6 +185,16 @@ def test_openai_compatible_client_tolerates_missing_usage(monkeypatch):
     assert usage.model == "model-x"
     assert usage.prompt_tokens is None
     assert usage.total_tokens is None
+
+
+def test_openai_compatible_client_identifies_rate_limit(monkeypatch):
+    def rate_limited(request, timeout):
+        raise urllib.error.HTTPError(request.full_url, 429, "Too Many Requests", {}, None)
+
+    monkeypatch.setattr("urllib.request.urlopen", rate_limited)
+
+    with pytest.raises(LLMClientError, match="llm_rate_limited"):
+        OpenAICompatibleLLMClient(api_key="secret", model="model-x")(_order(), _evidence(), _fallback())
 
 
 @pytest.mark.parametrize(
