@@ -160,7 +160,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T5: MLflow tracking wrapper (optional/no-op)
+### T5: MLflow tracking wrapper (optional/no-op) ✅ DONE
 
 **What**: Guarded MLflow wrapper that logs eval runs when configured and no-ops otherwise.
 **Where**: `backend/app/mlflow_tracking.py` (new) + `backend/tests/test_mlflow_tracking.py`
@@ -172,11 +172,11 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] `enabled()` returns true only if `MLFLOW_TRACKING_URI` set **and** `mlflow` importable.
-- [ ] `log_eval_run(report, params)` logs metrics+params when enabled; no-op when disabled.
-- [ ] Test: `enabled()` false when env unset (MLF-01 AC-3); `log_eval_run` no-ops without error.
-- [ ] Test: with a temp `file:` tracking URI, a run is recorded (metric readable back).
-- [ ] Gate passes; test count increases.
+- [x] `enabled()` returns true only if `MLFLOW_TRACKING_URI` set **and** `mlflow` importable.
+- [x] `log_eval_run(report, params)` logs metrics+params when enabled; no-op when disabled.
+- [x] Test: `enabled()` false when env unset (MLF-01 AC-3); `log_eval_run` no-ops without error.
+- [x] Test: with a temp tracking URI, a run is recorded (metric readable back). Uses `sqlite:` — mlflow 3.14 blocks the `file:` store by default.
+- [x] Gate passes; test count increases. 81 pass.
 
 **Tests**: unit · **Gate**: quick
 
