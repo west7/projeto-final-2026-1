@@ -32,6 +32,7 @@ Pré-requisitos:
 
 - Docker com Docker Compose.
 - Dataset Olist presente em `dataset/` (já versionado neste projeto).
+- `backend/.env` criado a partir de `backend/.env.example`.
 
 Subir API e frontend:
 
@@ -68,12 +69,13 @@ curl -X POST http://localhost:8000/predict-delay \
   }'
 ```
 
-Configuração opcional de LLM:
+Configuração da LLM em `backend/.env`:
 
-```bash
-LLM_API_KEY=sua_chave \
-LLM_MODEL=gpt-4o-mini \
-docker compose up --build
+```dotenv
+LLM_API_KEY=sua_chave
+LLM_MODEL=gemini-2.5-flash
+LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+LLM_TIMEOUT_SECONDS=20
 ```
 
 Sem chave de LLM, o agente continua funcionando com explicação determinística e
