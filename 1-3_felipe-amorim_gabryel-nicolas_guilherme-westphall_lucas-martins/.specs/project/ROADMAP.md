@@ -76,7 +76,7 @@
 - Usar um classificador calibrado como fonte do risco e preservar evidencia historica/fallback.
 - Comparar baseline e modelo com artefatos reproduziveis e rastreamento MLflow opcional.
 
-**Saida LLM estruturada e observabilidade no painel** - IN PROGRESS
+**Saida LLM estruturada e observabilidade no painel** - COMPLETE
 
 - Separar explicacao e acao, validar a intencao da acao contra a politica deterministica e degradar com seguranca.
 - Mostrar latencia, fallback/guardrails e tokens agregados apenas para a sessao atual do navegador.

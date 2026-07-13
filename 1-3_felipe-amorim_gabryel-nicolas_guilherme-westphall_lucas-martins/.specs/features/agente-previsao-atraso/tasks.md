@@ -460,9 +460,9 @@ T12 -> T15 -> T16 -> T17 -> T18
 
 **Done when:**
 
-- [ ] Metrics update after classifications without a new backend endpoint or persistence.
-- [ ] Prediction details identify LLM model and token total when present.
-- [ ] Responsive build remains usable and the production build passes.
+- [x] Metrics update after classifications without a new backend endpoint or persistence.
+- [x] Prediction details identify LLM model and token total when present.
+- [x] Responsive layout rules are preserved and the production build passes.
 
 **Tests:** build/smoke + manual UAT
 **Gate:** frontend build gate

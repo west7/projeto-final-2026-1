@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-13
-**Current Work:** agente-previsao-atraso - final refinements (T15-T18)
+**Current Work:** agente-previsao-atraso - T15-T18 complete; remaining Render UAT documented separately
 
 ---
 
@@ -148,7 +148,7 @@ _None active._
 ## Handoff
 
 **Feature:** agente-previsao-atraso — final refinements on `main`.
-**Current task:** T18, observabilidade da sessao no dashboard. T15-T17 concluidas.
+**Current task:** T15-T18 concluidas. Proximo passo opcional e validar cold start, fallback publico e memoria no Render.
 **Implemented baseline:** public Render frontend/API, calibrated model behind `ModelRiskTool`, historical evidence/fallback, optional MLflow, report and demo video.
 **Evaluation evidence:** 96,470 orders; high-alarm recall 5.5% -> 37.6%, precision 20.3% -> 32.2%, fallback 21.4% -> 0%; committed in `backend/data/eval_{historical,model}.json`.
 **Public URLs:** `https://olist-delay-dashboard.onrender.com/` and `https://olist-delay-agent-api.onrender.com/`.

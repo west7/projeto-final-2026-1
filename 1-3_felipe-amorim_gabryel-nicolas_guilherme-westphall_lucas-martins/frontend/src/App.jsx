@@ -252,11 +252,20 @@ function App() {
 
   const metrics = useMemo(() => {
     const classified = orders.filter((order) => order.prediction);
+    const totalLatency = classified.reduce((sum, order) => sum + order.prediction.latency_ms, 0);
     return {
       total: orders.length,
       ready: orders.filter((order) => order.status === "Pronto").length,
+      classified: classified.length,
       highRisk: classified.filter((order) => order.prediction.risk_level === "high").length,
-      explanations: classified.length,
+      averageLatency: classified.length ? `${Math.round(totalLatency / classified.length)} ms` : "-",
+      fallbackEvents: classified.filter(
+        (order) => order.prediction.fallback_used || order.prediction.guardrails.length > 0,
+      ).length,
+      totalTokens: classified.reduce(
+        (sum, order) => sum + (order.prediction.llm_usage?.total_tokens ?? 0),
+        0,
+      ),
     };
   }, [orders]);
 
@@ -375,8 +384,11 @@ function App() {
       <section className="summary-grid" aria-label="Resumo operacional">
         <Metric label="Pedidos na fila" value={metrics.total} />
         <Metric label="Prontos para classificar" value={metrics.ready} />
+        <Metric label="Classificados" value={metrics.classified} />
         <Metric label="Risco alto" value={metrics.highRisk} />
-        <Metric label="Explicacoes geradas" value={metrics.explanations} />
+        <Metric label="Latencia media" value={metrics.averageLatency} />
+        <Metric label="Fallbacks / guardrails" value={metrics.fallbackEvents} />
+        <Metric label="Tokens LLM" value={formatInteger(metrics.totalTokens)} />
       </section>
 
       <section className="workspace">
@@ -640,6 +652,11 @@ function PredictionDetail({ order }) {
             <DetailItem label="Amostra" value={`${prediction.evidence.sample_size} pedidos`} />
             <DetailItem label="Recorte" value={prediction.evidence.segment_used} />
             <DetailItem label="Latencia" value={`${prediction.latency_ms} ms`} />
+            <DetailItem label="Modelo LLM" value={prediction.llm_usage?.model ?? "Fallback deterministico"} />
+            <DetailItem
+              label="Tokens LLM"
+              value={prediction.llm_usage?.total_tokens == null ? "-" : formatInteger(prediction.llm_usage.total_tokens)}
+            />
           </div>
 
           <div className="detail-copy">
@@ -754,6 +771,10 @@ function formatPercent(value) {
   return new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 }).format(value);
 }
 
+function formatInteger(value) {
+  return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(value);
+}
+
 function formatDate(value) {
   if (!value) {
     return "-";
@@ -784,7 +805,9 @@ function fallbackText(prediction) {
     messages.push("A explicacao foi produzida pelo fallback deterministico porque a LLM nao esta configurada.");
   }
 
-  if (prediction.guardrails.some((event) => event.startsWith("llm_fallback"))) {
+  if (prediction.guardrails.includes("llm_fallback:action_mismatch")) {
+    messages.push("A acao sugerida pela LLM nao era compativel com a politica segura e foi substituida.");
+  } else if (prediction.guardrails.some((event) => event.startsWith("llm_fallback"))) {
     messages.push("A LLM estava indisponivel e a explicacao segura foi usada.");
   }
 
