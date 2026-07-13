@@ -148,8 +148,20 @@ _None active._
 
 ## Handoff
 
-**Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 4 in progress — T1-T11, T7, T13 done; T14 deployed, automated public smoke and dashboard classification passed. Remaining: cold-start, fallback and Render memory UAT; then AD-006 and T12.
+**Feature:** modelo-ml-mlflow (post-MVP evolution, AD-008) — on branch `feat/modelo-ml-mlflow`
+**Phase/Task:** COMPLETE — all 10 tasks (T1–T10) done; Verifier PASS (27/27 ACs, 89 tests). Trying model-enabled Render deploy next.
+**modelo-ml-mlflow summary:**
+- Calibrated `HistGradientBoosting` + isotonic classifier is the risk-number source behind the same `estimate_delay_risk` seam (`agent.py` unchanged). `HistoricalRiskTool` stays as fallback + evidence-factor source. LLM stage unchanged.
+- Real-data evidence (96,470 orders, `data/eval_{historical,model}.json`): high-alarm recall **5.5%→37.6%**, precision **20.3%→32.2%**, fallback **21.4%→0%**, bands monotone (32.2/14.3/3.9%). Per-state bias collapsed: DF 0→26.5%, SC 0→35.8%, BA 0→51.6%, SP 1.7→19.4%, RJ 9.5→63.9%.
+- New: `feature_encoding.py` (shared train/serve, `sellers_count` excluded), `train_model.py`, `model_risk_tool.py`, `mlflow_tracking.py` (optional/no-op), `evaluate.py --scorer model` (out-of-fold), `requirements-ml.txt`, compose `mlflow` profile. `api._build_default_agent` selects `ModelRiskTool` when `MODEL_PATH` set.
+- Verifier caught a real latent bug: mlflow 3.14 skops serializer rejected the pipeline → fixed with `serialization_format="cloudpickle"`.
+- Model artifact (`data/model.joblib`) and MLflow local dirs are gitignored; only the two eval JSONs are committed as report evidence.
+**Test state:** 89 passed, 0 failed (`cd backend && ./.venv/bin/python -m pytest -q`).
+**Next step:** model-enabled Render deploy (Dockerfile trains at build + installs ml deps; `MODEL_PATH` in render.yaml). Watch the 512 MB Free-tier memory — Render Starter is the AD-007 contingency if it OOMs. Then wire the ML evidence into the T12 report (Avaliação + Impactos/ética sections).
+**Blockers:** none.
+**Uncommitted files:** `.specs/project/ml-mlflow-plan.html` (untracked, intentionally not committed).
+**Branch:** `feat/modelo-ml-mlflow` (PR to `main`, not merged).
+**Prior feature (agente-previsao-atraso):** MVP complete on `main` — T1–T11/T7/T13 done, only T12 report remains (on hold). Baseline was 68 tests.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
