@@ -200,9 +200,9 @@ T10 -> T11 -> T12
 
 **Done when:**
 
-- [ ] Script reports delayed recall, precision or confusion by risk band.
-- [ ] Script reports fallback rate.
-- [ ] Script can group metrics by state/region when data exists.
+- [x] Script reports delayed recall, precision or confusion by risk band.
+- [x] Script reports fallback rate.
+- [x] Script can group metrics by state/region when data exists.
 
 **Tests:** integration/smoke
 **Gate:** backend quick gate
