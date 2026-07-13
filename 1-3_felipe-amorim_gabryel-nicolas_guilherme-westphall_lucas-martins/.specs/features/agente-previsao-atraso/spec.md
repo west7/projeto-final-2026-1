@@ -6,11 +6,11 @@ Equipes de logistica e atendimento precisam identificar pedidos com risco de atr
 
 ## Goals
 
-- [ ] Classificar pedidos em risco baixo, medio ou alto com base em historico de pedidos semelhantes.
-- [ ] Explicar os principais fatores da classificacao com evidencias e tamanho de amostra.
-- [ ] Sugerir uma acao operacional clara para cada nivel de risco.
-- [ ] Validar entrada e saida com guardrails e responder graciosamente quando faltar dado.
-- [ ] Registrar latencia, fallback, erros e custo/uso estimado de LLM para avaliacao.
+- [x] Classificar pedidos em risco baixo, medio ou alto com base em historico de pedidos semelhantes.
+- [x] Explicar os principais fatores da classificacao com evidencias e tamanho de amostra.
+- [x] Sugerir uma acao operacional clara para cada nivel de risco.
+- [x] Validar entrada e saida com guardrails e responder graciosamente quando faltar dado.
+- [ ] Registrar latencia, fallback, erros e custo/uso estimado de LLM para avaliacao. (latencia/fallback/erros ok; custo/uso de LLM ainda pendente)
 
 ## Out of Scope
 
@@ -123,15 +123,15 @@ Equipes de logistica e atendimento precisam identificar pedidos com risco de atr
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| DELAY-01 | P1: Classificar risco | Design | Pending |
-| DELAY-02 | P1: Fallback por recorte | Design | Pending |
-| DELAY-03 | P1: Validacao amigavel | Design | Pending |
-| DELAY-04 | P1: Explicar fatores | Design | Pending |
-| DELAY-05 | P1: Recomendar acao | Design | Pending |
-| DELAY-06 | P1: Guardrail de saida | Design | Pending |
-| DELAY-07 | P1: Produto integrado | Design | Pending |
-| DELAY-08 | P2: Observabilidade | Design | Pending |
-| DELAY-09 | P2: Avaliacao tecnica | Design | Pending |
+| DELAY-01 | P1: Classificar risco | Implementation | Implemented (T3/T4/T6) |
+| DELAY-02 | P1: Fallback por recorte | Implementation | Implemented (T4) |
+| DELAY-03 | P1: Validacao amigavel | Implementation | Implemented (T2/T8) |
+| DELAY-04 | P1: Explicar fatores | Implementation | Implemented (T5/T6) |
+| DELAY-05 | P1: Recomendar acao | Implementation | Implemented (T5) |
+| DELAY-06 | P1: Guardrail de saida | Implementation | Implemented (T2/T5/T6) |
+| DELAY-07 | P1: Produto integrado | Implementation | Implemented (T9/T10/T11) |
+| DELAY-08 | P2: Observabilidade | Implementation | Implemented, minimal (T8); custo/tokens ainda nao registrado |
+| DELAY-09 | P2: Avaliacao tecnica | Implementation | Implemented (T7) |
 
 **Coverage:** 9 total, 9 mapped to tasks, 0 unmapped.
 
@@ -139,8 +139,8 @@ Equipes de logistica e atendimento precisam identificar pedidos com risco de atr
 
 ## Success Criteria
 
-- [ ] Uma pessoa consegue subir e usar o fluxo agente -> API -> produto.
-- [ ] API retorna risco, explicacao, confianca e acao para pedidos validos.
-- [ ] Entradas invalidas e falhas de dependencia nao mostram erro tecnico cru.
+- [x] Uma pessoa consegue subir e usar o fluxo agente -> API -> produto.
+- [x] API retorna risco, explicacao, confianca e acao para pedidos validos.
+- [x] Entradas invalidas e falhas de dependencia nao mostram erro tecnico cru.
 - [ ] O relatorio inclui dados, fonte/licenca, vieses, metricas, guardrails, fallback e monitoramento.
 - [ ] A demo cobre pelo menos um caso de risco baixo, um de risco alto e um fallback.
