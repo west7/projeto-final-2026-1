@@ -277,7 +277,7 @@ T10 -> T11 -> T12
 - [x] Risk badges distinguish low/medium/high.
 - [x] Explanation and recommended action are visible for selected result.
 - [x] Fallback/low-confidence response is understandable.
-- [ ] Mobile layout remains usable (manual UAT pending).
+- [x] Mobile layout remains usable (manual UAT passed; physical keyboard behavior not tested).
 
 **Tests:** build/smoke + manual UAT
 **Gate:** frontend build gate
