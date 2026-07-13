@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 
 import httpx
@@ -124,6 +125,22 @@ def test_prediction_log_includes_latency_and_event_type(caplog):
     record = next(record for record in caplog.records if record.getMessage() == "delay_prediction")
     assert record.event_type == "prediction_success"
     assert record.latency_ms >= 0
+
+
+def test_app_logger_emits_info_json_with_telemetry_fields():
+    from app.api import _JsonLogFormatter, _configure_logging
+
+    _configure_logging()
+    app_logger = logging.getLogger("app")
+    assert app_logger.getEffectiveLevel() == logging.INFO
+
+    record = logging.LogRecord("app.api", logging.INFO, __file__, 0, "delay_prediction", None, None)
+    record.event_type = "prediction_fallback"
+    record.latency_ms = 12
+    payload = json.loads(_JsonLogFormatter().format(record))
+    assert payload["message"] == "delay_prediction"
+    assert payload["event_type"] == "prediction_fallback"
+    assert payload["latency_ms"] == 12
 
 
 def test_prediction_log_renders_llm_usage_in_message(caplog):

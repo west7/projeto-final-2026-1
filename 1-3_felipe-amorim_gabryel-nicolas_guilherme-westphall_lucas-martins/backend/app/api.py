@@ -1,6 +1,7 @@
 """HTTP API for the Olist delay prediction agent."""
 from __future__ import annotations
 
+import json
 import logging
 import os
 from pathlib import Path
@@ -20,6 +21,35 @@ from app.schemas import DelayPrediction, OrderInput, format_validation_error
 logger = logging.getLogger(__name__)
 _UNSET = object()
 _DEFAULT_PREPARED_PATH = Path(__file__).resolve().parents[1] / "data" / "prepared_orders.jsonl"
+
+_TELEMETRY_FIELDS = (
+    "event_type", "latency_ms", "llm_model",
+    "llm_prompt_tokens", "llm_completion_tokens", "llm_total_tokens",
+)
+
+
+class _JsonLogFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {"level": record.levelname, "logger": record.name, "message": record.getMessage()}
+        for field in _TELEMETRY_FIELDS:
+            if hasattr(record, field):
+                payload[field] = getattr(record, field)
+        return json.dumps(payload)
+
+
+def _configure_logging() -> None:
+    # uvicorn never configures the root/app logger, so app INFO telemetry is dropped
+    # (root defaults to WARNING). Attach one JSON handler scoped to `app.*`.
+    app_logger = logging.getLogger("app")
+    app_logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
+    if not any(isinstance(h.formatter, _JsonLogFormatter) for h in app_logger.handlers):
+        handler = logging.StreamHandler()
+        handler.setFormatter(_JsonLogFormatter())
+        app_logger.addHandler(handler)
+        app_logger.propagate = False
+
+
+_configure_logging()
 
 
 def create_app(agent=_UNSET, startup_error: str | None = None) -> FastAPI:
