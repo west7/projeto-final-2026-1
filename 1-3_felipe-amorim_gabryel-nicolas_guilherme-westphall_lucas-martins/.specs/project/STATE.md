@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-07-12
-**Current Work:** agente-previsao-atraso - executing (T14 Render preparation complete; public deploy/UAT next)
+**Last Updated:** 2026-07-13
+**Current Work:** agente-previsao-atraso - executing (T14 deployed; remaining public UAT next)
 
 ---
 
@@ -140,7 +140,7 @@ _None active._
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 4 in progress — T1-T11, T7, T13 done; T14 repository preparation complete. Next: create the Render Blueprint services and run public UAT, then AD-006 and T12.
+**Phase/Task:** Phase 4 in progress — T1-T11, T7, T13 done; T14 deployed, automated public smoke and dashboard classification passed. Remaining: cold-start, fallback and Render memory UAT; then AD-006 and T12.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
@@ -157,7 +157,7 @@ _None active._
 - Reliability fixes `1b06215`/`c062748` — Compose loads `backend/.env`, prepared data is published atomically, Gemini returns plain text and the UI accumulates friendly fallback messages.
 - T10 mobile UAT — passed at 320 px and landscape for table scrolling, form flow, loading/success, API error recovery and result readability. Physical-device numeric keyboard behavior was not tested; inputs use numeric `inputMode` hints.
 **Test state:** 67 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes with `VITE_API_BASE`; Render-target Docker image builds and starts on `PORT=10000`, health passes, raw CSVs are absent from runtime and idle memory was ~97 MiB locally.
-**Next step:** Sync `1-3_felipe-amorim_gabryel-nicolas_guilherme-westphall_lucas-martins/render.yaml` as a Render Blueprint, provide the three prompted environment values and validate the public smoke criteria in `DEPLOYMENT.md`. Then implement AD-006 and finish T12 with evidence from the deployed environment.
+**Next step:** Finish T14 public UAT for controlled cold start, deterministic fallback and memory from the Render dashboard. Then implement AD-006 and finish T12 with the deployed URLs and measured evidence.
 **Blockers:** none active for T12. B-001 (dataset license) still open for report.
 **Uncommitted files:** none expected after the reliability documentation commit.
 **Branch:** main.

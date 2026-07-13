@@ -109,13 +109,13 @@ Se cold start, memoria ou disponibilidade comprometerem a demonstracao:
 
 ## Criterios de Aceite do Deploy
 
-- [ ] Frontend publico abre por HTTPS.
-- [ ] Backend publico responde `/health`.
+- [x] Frontend publico abre por HTTPS.
+- [x] Backend publico responde `/health`.
 - [ ] Cold start apresenta estado compreensivel e se recupera.
-- [ ] Classificacao via frontend retorna risco, explicacao e acao.
-- [ ] Gemini funciona sem expor secrets.
+- [x] Classificacao via frontend retorna risco, explicacao e acao.
+- [x] Gemini funciona sem expor secrets.
 - [ ] Fallback deterministico funciona quando a LLM falha.
-- [ ] Imagem final nao depende de filesystem persistente.
+- [x] Imagem final nao depende de filesystem persistente.
 - [ ] Uso de memoria fica abaixo do limite da instancia.
 - [ ] URLs finais e procedimento de demo sao registrados no README.
 - [ ] Licenca do dataset e publicacao do derivado sao confirmadas antes do deploy publico.
@@ -137,4 +137,17 @@ Validacao local em 2026-07-12:
 - imagem final contem `prepared_orders.jsonl` e nao contem `/app/dataset`;
 - memoria em repouso observada no smoke local: aproximadamente 97 MiB.
 
-O valor de memoria e apenas evidencia local, nao substitui a medicao no Render. Cold start, pico durante classificacoes, URLs e smoke publico continuam pendentes.
+O valor de memoria e apenas evidencia local, nao substitui a medicao no Render. Cold start, pico durante classificacoes e fallback publico continuam pendentes.
+
+## Evidencias Publicas
+
+Validacao automatizada em 2026-07-13:
+
+- frontend: <https://olist-delay-dashboard.onrender.com/> — HTTP 200 em 0,25 s;
+- backend: <https://olist-delay-agent-api.onrender.com/>;
+- health: <https://olist-delay-agent-api.onrender.com/health> — HTTP 200 em 4,96 s;
+- preflight CORS: HTTP 200, permitindo `POST` apenas para `https://olist-delay-dashboard.onrender.com`;
+- `POST /predict-delay`: HTTP 200 em 7,23 s, com latencia interna de 6.880 ms;
+- caminho Gemini confirmado por resposta textual e telemetria de 281 tokens de prompt, 98 de completion e 1.447 tokens totais.
+
+O smoke usou o pedido sintetico `DEPLOY-SMOKE-001` e retornou risco medio de 15,29%, confianca alta e amostra historica de 569 pedidos. Nenhum secret apareceu na resposta. O usuario confirmou a classificacao pela interface com risco, explicacao e acao. O cold start controlado, o fallback deterministico publico e a memoria observada pelo painel do Render ainda precisam de UAT/evidencia.
