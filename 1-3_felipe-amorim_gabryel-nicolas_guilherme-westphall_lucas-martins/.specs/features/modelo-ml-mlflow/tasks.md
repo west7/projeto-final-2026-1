@@ -91,7 +91,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T2: Shared train/serve feature encoding
+### T2: Shared train/serve feature encoding ✅ DONE
 
 **What**: One module mapping both `OrderFeature` and `OrderInput` to the identical feature vector, `sellers_count` excluded.
 **Where**: `backend/app/feature_encoding.py` (new) + `backend/tests/test_feature_encoding.py`
@@ -103,11 +103,11 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] `FEATURE_COLUMNS`, `CATEGORICAL_COLUMNS`, `features_from_order_feature`, `features_from_order_input` implemented.
-- [ ] Test: a matched `OrderFeature`/`OrderInput` pair encodes to an equal vector (ML-02 AC-1).
-- [ ] Test: `sellers_count` never appears in the vector (ML-02 AC-2).
-- [ ] Test: missing `OrderInput` fields (no timestamp/dates/money) → `None`, no exception; `promised_days` absent when dates missing.
-- [ ] Gate passes; test count increases (no deletions).
+- [x] `FEATURE_COLUMNS`, `CATEGORICAL_COLUMNS`, `features_from_order_feature`, `features_from_order_input` implemented.
+- [x] Test: a matched `OrderFeature`/`OrderInput` pair encodes to an equal vector (ML-02 AC-1).
+- [x] Test: `sellers_count` never appears in the vector (ML-02 AC-2).
+- [x] Test: missing `OrderInput` fields (no timestamp/dates/money) → `None`, no exception; `promised_days` absent when dates missing.
+- [x] Gate passes; test count increases (no deletions). 71 pass.
 
 **Tests**: unit · **Gate**: quick
 
