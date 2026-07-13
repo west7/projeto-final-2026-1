@@ -64,3 +64,20 @@ def test_mlflow_registration_skipped_when_disabled(tmp_path, monkeypatch):
 
     assert summary.mlflow_logged is False
     assert model_path.is_file()
+
+
+def test_mlflow_registration_logs_when_enabled(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # keep any mlflow artifact dirs inside tmp
+    monkeypatch.setenv("MLFLOW_TRACKING_URI", f"sqlite:///{tmp_path / 'mlflow.db'}")
+    prepared = tmp_path / "prepared.jsonl"
+    model_path = tmp_path / "model.joblib"
+    _write_fixture(prepared)
+
+    summary = train(prepared, model_path, cv=2)
+
+    assert summary.mlflow_logged is True
+
+    import mlflow
+
+    versions = mlflow.MlflowClient().search_model_versions("name='delay-risk'")
+    assert len(versions) >= 1  # the model was actually registered, not just logged

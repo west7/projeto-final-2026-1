@@ -1,4 +1,5 @@
 import json
+import sys
 from dataclasses import asdict
 
 from app.data_prep import OrderFeature
@@ -7,6 +8,16 @@ from app.model_risk_tool import ModelRiskTool
 from app.risk_tool import HistoricalRiskTool, _risk_level
 from app.schemas import OrderInput
 from app.train_model import train
+
+
+class _StubModel:
+    """Model with a fixed delay probability, to control which band it maps to."""
+
+    def __init__(self, p):
+        self._p = p
+
+    def predict_proba(self, X):
+        return [[1.0 - self._p, self._p]]
 
 
 def _feature(order_id, delayed):
@@ -61,6 +72,34 @@ def test_score_comes_from_model_and_level_matches(tmp_path):
     assert ev.risk_score == round(p, 4)
     assert ev.risk_level == _risk_level(p)
     assert ev.factors[0].startswith("score do modelo calibrado")
+
+
+def test_model_overrides_risk_level_to_model_band(tmp_path):
+    prepared = _prepared(tmp_path)
+    historical = HistoricalRiskTool.from_path(prepared)
+    order = _order()
+    hist_ev = historical.estimate_delay_risk(order)
+
+    p = 0.05  # 'low' band; historical for this fixture resolves to a different band
+    tool = ModelRiskTool(historical, _StubModel(p))
+    ev = tool.estimate_delay_risk(order)
+
+    assert _risk_level(p) != hist_ev.risk_level  # guard: bands genuinely differ, so the override is observable
+    assert ev.risk_score == round(p, 4)
+    assert ev.risk_level == _risk_level(p)  # model band wins, not the historical band
+
+
+def test_missing_joblib_dependency_falls_back(tmp_path, monkeypatch):
+    prepared = _prepared(tmp_path)
+    model_path = tmp_path / "model.joblib"
+    train(prepared, model_path, cv=2)  # a real, loadable artifact exists on disk
+
+    monkeypatch.setitem(sys.modules, "joblib", None)  # force ImportError inside _load_model
+    tool = ModelRiskTool.from_paths(prepared, model_path)
+    order = _order()
+
+    assert tool.model is None
+    assert tool.estimate_delay_risk(order) == tool.historical.estimate_delay_risk(order)
 
 
 def test_historical_evidence_preserved_for_guardrail(tmp_path):

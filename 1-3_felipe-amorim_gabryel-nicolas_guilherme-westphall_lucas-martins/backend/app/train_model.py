@@ -95,7 +95,14 @@ def train(prepared_path: Path, model_path: Path, cv: int = 5) -> TrainSummary:
         import mlflow
 
         with mlflow.start_run(run_name="train_delay_model"):
-            mlflow.sklearn.log_model(pipeline, name="model", registered_model_name="delay-risk")
+            # cloudpickle, not the default skops: the pipeline holds a custom
+            # FunctionTransformer that skops rejects as an untrusted type.
+            mlflow.sklearn.log_model(
+                pipeline,
+                name="model",
+                registered_model_name="delay-risk",
+                serialization_format="cloudpickle",
+            )
         mlflow_logged = True
 
     return TrainSummary(
