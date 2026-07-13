@@ -248,7 +248,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T9: Optional MLflow service in Docker Compose
+### T9: Optional MLflow service in Docker Compose ✅ DONE
 
 **What**: Add an `mlflow` service under `profiles: [mlflow]`; API/frontend start without it.
 **Where**: `backend/../docker-compose.yml` (modify)
@@ -260,9 +260,9 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] `docker compose config` valid; `mlflow` service gated behind `profiles: [mlflow]`.
-- [ ] Without the profile, no mlflow container is created and the API serves predictions.
-- [ ] With the profile, the mlflow server is reachable and eval can point at it.
+- [x] `docker compose config` valid; `mlflow` service gated behind `profiles: [mlflow]`. (Default `config --services` → backend, frontend only; `--profile mlflow` adds mlflow.)
+- [x] Without the profile, no mlflow container is created and the API serves predictions.
+- [x] With the profile, the mlflow server is reachable (port 5000) and eval can point at it via `MLFLOW_TRACKING_URI`.
 
 **Tests**: none (config) · **Gate**: build (`docker compose config`)
 

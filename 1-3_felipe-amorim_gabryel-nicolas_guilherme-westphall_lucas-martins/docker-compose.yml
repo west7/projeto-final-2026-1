@@ -22,3 +22,22 @@ services:
     ports:
       - "5173:80"
     restart: unless-stopped
+
+  # Optional experiment tracking. Enabled only with `--profile mlflow`, so a plain
+  # `docker compose up` never starts it and the API/frontend serve without it.
+  # Point eval at it via MLFLOW_TRACKING_URI=http://localhost:5000.
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.14.0
+    profiles: [mlflow]
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --artifacts-destination /mlflow/artifacts
+    volumes:
+      - mlflow-data:/mlflow
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+volumes:
+  mlflow-data:
