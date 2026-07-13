@@ -39,7 +39,8 @@ class OpenAICompatibleLLMClient:
                     "content": (
                         "Voce e um agente operacional de logistica. Responda em portugues do Brasil, "
                         "com explicacao curta, acionavel e fiel as evidencias numericas fornecidas. "
-                        "Nao invente dados nem prometa acao automatica."
+                        "Nao invente dados nem prometa acao automatica. Responda somente em texto puro, "
+                        "sem Markdown, titulos, listas ou asteriscos, usando no maximo dois paragrafos curtos."
                     ),
                 },
                 {

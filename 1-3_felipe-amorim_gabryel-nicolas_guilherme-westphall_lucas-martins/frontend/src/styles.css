@@ -389,6 +389,10 @@ tbody tr:hover,
   color: #40565e;
 }
 
+.detail-copy p {
+  white-space: pre-line;
+}
+
 .alert {
   border-radius: 8px;
   margin-top: 14px;

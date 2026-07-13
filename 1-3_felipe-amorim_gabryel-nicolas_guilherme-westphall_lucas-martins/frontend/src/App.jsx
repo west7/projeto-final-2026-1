@@ -562,15 +562,29 @@ function statusClass(status) {
 }
 
 function fallbackText(prediction) {
-  if (prediction.guardrails.includes("llm_unconfigured")) {
-    return "Explicacao gerada por fallback deterministico porque a LLM nao esta configurada.";
-  }
+  const messages = [];
 
   if (prediction.fallback_used) {
-    return "O agente usou um recorte historico mais amplo por falta de amostra especifica.";
+    messages.push("O agente usou um recorte historico mais amplo por falta de amostra especifica.");
   }
 
-  return `Guardrails acionados: ${prediction.guardrails.join(", ")}.`;
+  if (prediction.guardrails.includes("low_confidence")) {
+    messages.push("A confianca e baixa; recomenda-se revisao humana.");
+  }
+
+  if (prediction.guardrails.includes("llm_unconfigured")) {
+    messages.push("A explicacao foi produzida pelo fallback deterministico porque a LLM nao esta configurada.");
+  }
+
+  if (prediction.guardrails.some((event) => event.startsWith("llm_fallback"))) {
+    messages.push("A LLM estava indisponivel e a explicacao segura foi usada.");
+  }
+
+  if (prediction.guardrails.some((event) => event.startsWith("output_guardrail"))) {
+    messages.push("A saida original nao passou pela validacao e foi substituida por uma resposta segura.");
+  }
+
+  return messages.join(" ");
 }
 
 export default App;
