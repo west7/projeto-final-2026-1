@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-12
-**Current Work:** agente-previsao-atraso - executing (T1-T11, T7, T13 complete; T12 next)
+**Current Work:** agente-previsao-atraso - executing (T1-T11, T7, T13 complete; T14 deploy next)
 
 ---
 
@@ -41,6 +41,20 @@
 **Reason:** O enunciado pede um agente de IA, escolha de LLM, prompts, fallback e custo/latencia de LLM; um fluxo puramente deterministico ficaria fora do foco.
 **Trade-off:** A demo passa a depender de credenciais/configuracao de LLM para o caminho ideal, mas segue funcionando com degradacao graciosa.
 **Impact:** `backend/app/agent.py` aceita `llm_client`, registra `llm_unconfigured`/`llm_fallback` e `backend/app/llm.py` fornece cliente OpenAI-compatible configuravel por ambiente.
+
+### AD-006: Saida hibrida e estruturada para explicacao e acao (2026-07-12)
+
+**Decision:** A LLM deve produzir `explanation` e `recommended_action` como campos estruturados. A politica deterministica define a acao segura de referencia, valida a compatibilidade da acao gerada com risco/confianca e assume ambos os campos quando a LLM falhar ou violar guardrails.
+**Reason:** O comportamento atual pede que a LLM recomende uma acao dentro da explicacao, mas a API exibe separadamente a acao deterministica, causando repeticao e deixando a acao efetivamente fora do caminho primario da LLM.
+**Trade-off:** A saida estruturada e o guardrail semantico adicionam validacao e testes ao cliente LLM, mas preservam clareza, seguranca e alinhamento com AD-005.
+**Impact:** `backend/app/llm.py` devera retornar explicacao e acao separadas; `backend/app/agent.py` devera usar a saida validada da LLM e manter `explain_risk()` como fallback seguro. Implementacao ainda pendente.
+
+### AD-007: Frontend e backend no Render com custo zero como alvo (2026-07-12)
+
+**Decision:** Hospedar o frontend como Render Static Site e o backend como Render Free Web Service Docker. Aceitar o cold start do plano gratuito, incorporar o dataset preparado na imagem e manter Render Starter como contingencia para a demo.
+**Reason:** Um unico provedor reduz configuracao e risco operacional; o Render suporta site estatico, FastAPI/Docker, secrets, health check e URLs HTTPS.
+**Trade-off:** O backend gratuito dorme apos inatividade, tem filesystem efemero, 512 MB/0,1 CPU e pode demorar cerca de um minuto para acordar.
+**Impact:** Implementar `VITE_API_BASE`, CORS restrito, build-time data prep, uso de `$PORT`, estado de aquecimento/retry e `render.yaml`. Nao usar UptimeRobot para impedir permanentemente o spin-down; detalhes em `DEPLOYMENT.md`.
 
 ---
 
@@ -109,8 +123,10 @@ _None active._
 ## Todos
 
 - [ ] Confirmar licenca oficial do dataset na fonte.
-- [ ] Definir onde hospedar API e frontend.
+- [x] Definir onde hospedar API e frontend: Render; ver `DEPLOYMENT.md`.
 - [ ] Evitar referencias a rascunhos locais nao commitados na documentacao versionada.
+- [ ] Implementar AD-006: resposta estruturada da LLM, guardrail da acao e fallback deterministico.
+- [ ] Implementar AD-007 e validar os criterios de aceite em `DEPLOYMENT.md`.
 
 ---
 
@@ -123,7 +139,7 @@ _None active._
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 4 in progress — T1-T11, T7, T13 done (implementation complete). Next: T12 report/demo documentation.
+**Phase/Task:** Phase 4 in progress — T1-T11, T7, T13 done. Next: T14 Render deployment, then AD-006 and T12 report/demo documentation.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
@@ -139,9 +155,9 @@ _None active._
 - T13 current branch — LLM token telemetry: `llm.py` parses `usage` into prompt/completion/total tokens (no server-side cost — reasoning models bill total > prompt+completion, so cost is derived offline in the report); `schemas.py` adds `LLMUsage` and `DelayPrediction.llm_usage`; `agent.py` threads usage through (null on deterministic/fallback paths); `api.py` logs `llm_model` + token counts. Live-verified against gemini-2.5-flash (226/99/1026 tokens). Closes DELAY-08 (report derives cost). 4 tests.
 - Reliability fixes `1b06215`/`c062748` — Compose loads `backend/.env`, prepared data is published atomically, Gemini returns plain text and the UI accumulates friendly fallback messages.
 - T10 mobile UAT — passed at 320 px and landscape for table scrolling, form flow, loading/success, API error recovery and result readability. Physical-device numeric keyboard behavior was not tested; inputs use numeric `inputMode` hints.
-**Test state:** 64 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes; Docker smoke passed for backend health, Nginx proxy, frontend and Gemini prediction.
-**Next step:** Finish T12 report/demo docs (evaluation numbers from T7, cost/latency/fallback signals from T13/T8 telemetry).
-**Blockers:** none active. B-001 resolved — dataset licensed CC BY-NC-SA 4.0 (credit source + declare license in the T12 report).
+**Test state:** 66 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes; Docker smoke passed for backend health, Nginx proxy, frontend and Gemini prediction.
+**Next step:** Execute T14: prepare Render configuration, deploy frontend/backend and validate the public smoke criteria in `DEPLOYMENT.md`. Then implement AD-006 and finish T12 with evidence from the deployed environment.
+**Blockers:** none active for T12. B-001 (dataset license) still open for report.
 **Uncommitted files:** none expected after the reliability documentation commit.
 **Branch:** main.
 **Notes:** Executing on `main` (matches T1). One sub-agent worker died on a transient API error mid-T3; T3 finished inline. Verifier not yet run — fires after feature's final task (T12).

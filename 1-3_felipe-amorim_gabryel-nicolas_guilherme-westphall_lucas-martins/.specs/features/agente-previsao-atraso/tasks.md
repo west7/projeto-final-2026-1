@@ -30,7 +30,9 @@ T7 --------^
 ### Phase 4: Deploy and Report
 
 ```text
-T10 -> T11 -> T12
+T10 -> T11 -> T14 -> T12
+              ^
+T13 ----------|
 ```
 
 ---
@@ -312,7 +314,7 @@ T10 -> T11 -> T12
 
 **What:** Update project report with problem, architecture, data, guardrails, evaluation, ethics and demo script.
 **Where:** `README.md` or final report file
-**Depends on:** T11
+**Depends on:** T14
 **Reuses:** `.specs`, `README.md`, dataset analysis.
 **Requirement:** DELAY-08, DELAY-09
 
@@ -357,6 +359,33 @@ T10 -> T11 -> T12
 **Tests:** unit
 **Gate:** backend quick gate
 
+---
+
+### T14: Deploy frontend and backend on Render
+
+**What:** Prepare the repository for Render Free, publish both services and validate the public flow before completing the report.
+**Where:** `render.yaml`, backend/frontend runtime configuration, `.specs/project/DEPLOYMENT.md`
+**Depends on:** T11, T13
+**Reuses:** Docker images, `/health`, token telemetry and the existing dashboard.
+**Requirement:** DELAY-07, DELAY-08
+
+**Tools:**
+
+- MCP: NONE
+- Skill: `tlc-spec-driven`
+
+**Done when:**
+
+- [ ] Render configuration builds the frontend and backend without local secrets.
+- [ ] Backend binds to Render's `PORT`, exposes `/health` and restricts CORS to the configured frontend origin.
+- [ ] Frontend uses the public API URL and presents a recoverable backend warm-up state.
+- [ ] Public smoke test covers health, Gemini prediction and deterministic fallback.
+- [ ] Memory usage and cold-start behavior are recorded in `DEPLOYMENT.md`.
+- [ ] Public URLs are available for T12.
+
+**Tests:** build/deploy smoke + manual UAT
+**Gate:** full gate and public smoke
+
 ```text
 Phase 1:
   T1 -> T2 -> T3
@@ -371,7 +400,9 @@ Phase 3:
   T7 --------^
 
 Phase 4:
-  T10 -> T11 -> T12
+  T10 -> T11 -> T14 -> T12
+                ^
+  T13 ----------|
 ```
 
 **Parallelism constraint:** No task is marked `[P]` yet because backend test isolation is not established. After T1 defines isolated test fixtures, T7 can potentially run in parallel with T5/T6.
@@ -396,6 +427,7 @@ Phase 4:
 | T10 | Pass | One UI display deliverable. |
 | T11 | Pass | One deployment packaging deliverable. |
 | T12 | Pass | One report/demo documentation deliverable. |
+| T14 | Pass | One Render deployment and public validation deliverable. |
 
 ### Check 2: Diagram-Definition Cross-Check
 
@@ -411,7 +443,9 @@ Phase 4:
 | T8 -> T9 | T9 depends on T8 | Pass |
 | T9 -> T10 | T10 depends on T9 | Pass |
 | T10 -> T11 | T11 depends on T10 | Pass |
-| T11 -> T12 | T12 depends on T11 | Pass |
+| T11 -> T14 | T14 depends on T11 | Pass |
+| T13 -> T14 | T14 depends on T13 | Pass |
+| T14 -> T12 | T12 depends on T14 | Pass |
 
 ### Check 3: Test Co-location Validation
 

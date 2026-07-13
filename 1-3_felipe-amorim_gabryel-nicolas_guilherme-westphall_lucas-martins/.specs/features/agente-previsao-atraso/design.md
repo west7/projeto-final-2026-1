@@ -78,6 +78,24 @@ graph TD
 - **Dependencies:** Historical Risk Tool, LLM client, explanation/action fallback policy.
 - **Reuses:** Deterministic evidence from risk tool.
 
+### Contrato Hibrido da Resposta LLM
+
+O caminho primario deve solicitar uma resposta estruturada com campos separados:
+
+```python
+class LLMExplanationAction:
+    explanation: str
+    recommended_action: str
+```
+
+- `explanation` descreve somente o motivo do risco, citando score, confianca, amostra, recorte e evidencias relevantes.
+- `recommended_action` propoe o proximo passo operacional sem repetir a explicacao nem prometer automacao.
+- A politica deterministica continua gerando uma acao segura de referencia por nivel de risco e confianca.
+- O guardrail compara a acao da LLM com a politica: baixa confianca exige revisao humana; risco alto exige acompanhamento/comunicacao preventiva; risco baixo nao pode escalar para intervencao urgente sem evidencia.
+- Resposta vazia, malformada, sem evidencia, incompatibilidade de acao ou indisponibilidade da LLM aciona fallback deterministico para explicacao e acao.
+
+**Estado atual:** a LLM retorna apenas uma string usada como explicacao, enquanto `recommended_action` vem sempre de `explain_risk()`. O prompt tambem pede um proximo passo dentro da explicacao, o que causa duplicacao na interface. A migracao para o contrato acima esta pendente.
+
 ### API
 
 - **Purpose:** Expose the agent as an HTTP service with guardrails and telemetry.
@@ -234,4 +252,4 @@ Each segment must have a minimum sample threshold. If not, move to the next fall
 | Target | Delivery after estimated date | Directly matches business problem. |
 | UI | Existing tower-control dashboard | Already present and aligned with stakeholders. |
 | Evaluation metric | Recall for late orders plus fallback rate | Better than accuracy for imbalanced delay cases. |
-| LLM | Primary response/action layer with template fallback | Aligns with agent requirement while keeping system reliable if LLM is unavailable. |
+| LLM | Structured explanation/action with deterministic policy guardrail and fallback | Keeps the LLM as primary response layer, separates explanation from action and preserves a safe path when output is invalid or unavailable. |
