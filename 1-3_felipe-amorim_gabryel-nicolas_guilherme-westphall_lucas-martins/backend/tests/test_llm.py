@@ -41,6 +41,7 @@ def test_build_llm_client_from_env_uses_config(monkeypatch):
     monkeypatch.setenv("LLM_MODEL", "model-x")
     monkeypatch.setenv("LLM_BASE_URL", "https://llm.example/v1")
     monkeypatch.setenv("LLM_TIMEOUT_SECONDS", "7")
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "low")
 
     client = build_llm_client_from_env()
 
@@ -48,6 +49,14 @@ def test_build_llm_client_from_env_uses_config(monkeypatch):
     assert client.model == "model-x"
     assert client.base_url == "https://llm.example/v1"
     assert client.timeout_seconds == 7
+    assert client.reasoning_effort == "low"
+
+
+def test_build_llm_client_from_env_defaults_reasoning_effort_to_none(monkeypatch):
+    monkeypatch.setenv("LLM_API_KEY", "secret")
+    monkeypatch.delenv("LLM_REASONING_EFFORT", raising=False)
+
+    assert build_llm_client_from_env().reasoning_effort == "none"
 
 
 def test_openai_compatible_client_sends_evidence_and_reads_content(monkeypatch):
@@ -81,7 +90,33 @@ def test_openai_compatible_client_sends_evidence_and_reads_content(monkeypatch):
     assert calls["timeout"] == 20
     assert calls["headers"]["Authorization"] == "Bearer secret"
     assert calls["payload"]["model"] == "model-x"
+    assert calls["payload"]["reasoning_effort"] == "none"  # default disables Gemini thinking
     assert "10 de 40" in calls["payload"]["messages"][1]["content"]
+
+
+def test_openai_compatible_client_omits_reasoning_effort_when_blank(monkeypatch):
+    calls = {}
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode("utf-8")
+
+    def fake_urlopen(request, timeout):
+        calls["payload"] = json.loads(request.data.decode("utf-8"))
+        return FakeResponse()
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    client = OpenAICompatibleLLMClient(api_key="secret", model="model-x", reasoning_effort="")
+
+    client(_order(), _evidence(), _fallback())
+
+    assert "reasoning_effort" not in calls["payload"]
 
 
 def test_openai_compatible_client_captures_token_usage(monkeypatch):

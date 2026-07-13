@@ -15,6 +15,8 @@ services:
         value: https://generativelanguage.googleapis.com/v1beta/openai/
       - key: LLM_TIMEOUT_SECONDS
         value: 20
+      - key: LLM_REASONING_EFFORT
+        value: none
       - key: FRONTEND_ORIGIN
         sync: false
       - key: PREPARED_FEATURES_PATH

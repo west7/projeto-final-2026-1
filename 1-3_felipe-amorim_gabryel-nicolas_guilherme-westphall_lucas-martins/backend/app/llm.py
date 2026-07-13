@@ -42,6 +42,9 @@ class OpenAICompatibleLLMClient:
     model: str = DEFAULT_MODEL
     base_url: str = DEFAULT_BASE_URL
     timeout_seconds: int = 20
+    # "none" disables Gemini 2.5 thinking (the reasoning tokens dominate latency for
+    # a plain rewrite task). Blank omits the field so non-Gemini providers aren't sent it.
+    reasoning_effort: str = "none"
 
     def __call__(self, order: OrderInput, evidence: RiskEvidence, fallback: ExplanationResult) -> "LLMResult":
         payload = {
@@ -63,6 +66,8 @@ class OpenAICompatibleLLMClient:
             ],
             "temperature": 0.2,
         }
+        if self.reasoning_effort:
+            payload["reasoning_effort"] = self.reasoning_effort
         request = urllib.request.Request(
             f"{self.base_url.rstrip('/')}/chat/completions",
             data=json.dumps(payload).encode("utf-8"),
@@ -107,6 +112,7 @@ def build_llm_client_from_env() -> OpenAICompatibleLLMClient | None:
         model=os.getenv("LLM_MODEL", DEFAULT_MODEL),
         base_url=os.getenv("LLM_BASE_URL", DEFAULT_BASE_URL),
         timeout_seconds=int(os.getenv("LLM_TIMEOUT_SECONDS", "20")),
+        reasoning_effort=os.getenv("LLM_REASONING_EFFORT", "none"),
     )
 
 
