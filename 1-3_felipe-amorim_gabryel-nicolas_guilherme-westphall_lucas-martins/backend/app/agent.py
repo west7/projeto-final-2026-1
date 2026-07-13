@@ -5,9 +5,10 @@ from collections.abc import Callable
 from time import perf_counter
 
 from app.explanation import ExplanationResult, OutputGuardrailError, explain_risk, safe_explanation
-from app.schemas import DelayPrediction, OrderInput, RiskEvidence
+from app.llm import LLMResult
+from app.schemas import DelayPrediction, LLMUsage, OrderInput, RiskEvidence
 
-LLMClient = Callable[[OrderInput, RiskEvidence, ExplanationResult], str]
+LLMClient = Callable[[OrderInput, RiskEvidence, ExplanationResult], "str | LLMResult"]
 
 
 class DelayAgent:
@@ -29,7 +30,7 @@ class DelayAgent:
             explanation_result = safe_explanation(str(exc))
 
         guardrails.extend(explanation_result.guardrails)
-        explanation = self._generate_llm_explanation(order, evidence, explanation_result, guardrails)
+        explanation, llm_usage = self._generate_llm_explanation(order, evidence, explanation_result, guardrails)
 
         latency_ms = max(0, int((perf_counter() - started) * 1000))
         return DelayPrediction(
@@ -43,6 +44,7 @@ class DelayAgent:
             guardrails=guardrails,
             fallback_used=evidence.fallback_used,
             latency_ms=latency_ms,
+            llm_usage=llm_usage,
         )
 
     def _generate_llm_explanation(
@@ -51,21 +53,25 @@ class DelayAgent:
         evidence: RiskEvidence,
         fallback: ExplanationResult,
         guardrails: list[str],
-    ) -> str:
+    ) -> tuple[str, LLMUsage | None]:
         if self.llm_client is None:
             guardrails.append("llm_unconfigured")
-            return fallback.explanation
+            return fallback.explanation, None
 
         try:
             generated = self.llm_client(order, evidence, fallback)
         except Exception:
             guardrails.append("llm_fallback")
-            return fallback.explanation
+            return fallback.explanation, None
 
-        if not generated or not generated.strip():
+        # A client may return raw text (deterministic/test paths) or an LLMResult with usage.
+        text = generated.text if isinstance(generated, LLMResult) else generated
+        usage = generated.usage if isinstance(generated, LLMResult) else None
+
+        if not text or not text.strip():
             guardrails.append("llm_fallback:empty_response")
-            return fallback.explanation
-        return generated.strip()
+            return fallback.explanation, None
+        return text.strip(), usage
 
 
 def classify_order(

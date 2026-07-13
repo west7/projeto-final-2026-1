@@ -114,3 +114,23 @@ def test_llm_failure_falls_back_to_deterministic_text():
 
     assert "amostra historica: 40 pedidos" in prediction.explanation
     assert prediction.guardrails == ["llm_fallback"]
+
+
+def test_llm_result_usage_is_attached_to_prediction():
+    from app.llm import LLMResult
+    from app.schemas import LLMUsage
+
+    usage = LLMUsage(model="model-x", prompt_tokens=100, completion_tokens=20, total_tokens=140)
+
+    def client(order, evidence, fallback):
+        return LLMResult(text="explicacao do modelo", usage=usage)
+
+    prediction = DelayAgent(FakeRiskTool(_evidence()), llm_client=client).classify_order(_order())
+
+    assert prediction.explanation == "explicacao do modelo"
+    assert prediction.llm_usage == usage
+
+
+def test_deterministic_path_has_no_llm_usage():
+    prediction = DelayAgent(FakeRiskTool(_evidence())).classify_order(_order())
+    assert prediction.llm_usage is None

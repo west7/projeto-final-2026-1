@@ -52,6 +52,13 @@ class RiskEvidence(BaseModel):
     factors: list[str]
 
 
+class LLMUsage(BaseModel):
+    model: str
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    total_tokens: int | None = None
+
+
 class DelayPrediction(BaseModel):
     order_id: str
     risk_score: float
@@ -63,6 +70,7 @@ class DelayPrediction(BaseModel):
     guardrails: list[str]
     fallback_used: bool
     latency_ms: int
+    llm_usage: LLMUsage | None = None
 
 
 def format_validation_error(exc: ValidationError) -> list[dict]:

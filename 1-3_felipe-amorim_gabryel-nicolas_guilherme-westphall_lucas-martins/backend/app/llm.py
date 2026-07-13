@@ -13,7 +13,7 @@ import urllib.request
 from dataclasses import dataclass
 
 from app.explanation import ExplanationResult
-from app.schemas import OrderInput, RiskEvidence
+from app.schemas import LLMUsage, OrderInput, RiskEvidence
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
@@ -24,13 +24,26 @@ class LLMClientError(RuntimeError):
 
 
 @dataclass(frozen=True)
+class LLMResult:
+    """An LLM explanation plus the raw token usage for that call.
+
+    We log token counts as a hard fact and derive cost offline in the report:
+    a per-1K price is a time-varying assumption, and for reasoning models the
+    billed `total_tokens` exceeds `prompt + completion`, so a naive per-call
+    formula would undercount. Keeping tokens here lets the report price them.
+    """
+    text: str
+    usage: LLMUsage
+
+
+@dataclass(frozen=True)
 class OpenAICompatibleLLMClient:
     api_key: str
     model: str = DEFAULT_MODEL
     base_url: str = DEFAULT_BASE_URL
     timeout_seconds: int = 20
 
-    def __call__(self, order: OrderInput, evidence: RiskEvidence, fallback: ExplanationResult) -> str:
+    def __call__(self, order: OrderInput, evidence: RiskEvidence, fallback: ExplanationResult) -> "LLMResult":
         payload = {
             "model": self.model,
             "messages": [
@@ -73,7 +86,16 @@ class OpenAICompatibleLLMClient:
 
         if not content:
             raise LLMClientError("llm_response_empty")
-        return content
+        return LLMResult(text=content, usage=self._usage(body.get("usage")))
+
+    def _usage(self, raw: dict | None) -> LLMUsage:
+        raw = raw or {}
+        return LLMUsage(
+            model=self.model,
+            prompt_tokens=raw.get("prompt_tokens"),
+            completion_tokens=raw.get("completion_tokens"),
+            total_tokens=raw.get("total_tokens"),
+        )
 
 
 def build_llm_client_from_env() -> OpenAICompatibleLLMClient | None:

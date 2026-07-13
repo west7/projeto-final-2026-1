@@ -77,10 +77,14 @@ def create_app(agent=_UNSET, startup_error: str | None = None) -> FastAPI:
             )
 
         event_type = "prediction_fallback" if prediction.fallback_used or prediction.guardrails else "prediction_success"
-        logger.info(
-            "delay_prediction",
-            extra={"event_type": event_type, "latency_ms": _elapsed_ms(started)},
-        )
+        extra = {"event_type": event_type, "latency_ms": _elapsed_ms(started)}
+        if prediction.llm_usage is not None:
+            usage = prediction.llm_usage
+            extra["llm_model"] = usage.model
+            extra["llm_prompt_tokens"] = usage.prompt_tokens
+            extra["llm_completion_tokens"] = usage.completion_tokens
+            extra["llm_total_tokens"] = usage.total_tokens
+        logger.info("delay_prediction", extra=extra)
         return prediction
 
     return api

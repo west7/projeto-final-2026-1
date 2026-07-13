@@ -333,7 +333,29 @@ T10 -> T11 -> T12
 
 ---
 
-## Parallel Execution Map
+### T13: Capture LLM cost/token telemetry
+
+**What:** Record per-call LLM token usage so monitoring covers the cost signal; cost is derived offline in the report from a price table (tokens are a fact, price is a time-varying assumption, and reasoning models bill total > prompt+completion). Finishes DELAY-08's minimal observability.
+**Where:** `backend/app/llm.py`, `backend/app/schemas.py`, `backend/app/agent.py`, `backend/app/api.py`
+**Depends on:** T6, T8
+**Reuses:** OpenAI-compatible `usage` block; existing telemetry logging.
+**Requirement:** DELAY-08
+
+**Tools:**
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when:**
+
+- [x] LLM client parses `usage` and returns prompt/completion/total tokens; tolerates a missing `usage` block.
+- [x] `DelayPrediction.llm_usage` carries model + token counts; deterministic and fallback paths leave it null.
+- [x] API log line includes `llm_model` and prompt/completion/total tokens when the LLM path ran.
+- [x] Tests cover token capture (incl. reasoning-token case), missing usage, usage threading and the no-LLM path.
+- [ ] Report derives estimated cost from logged tokens via a documented price table (T12).
+
+**Tests:** unit
+**Gate:** backend quick gate
 
 ```text
 Phase 1:

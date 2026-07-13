@@ -73,11 +73,60 @@ def test_openai_compatible_client_sends_evidence_and_reads_content(monkeypatch):
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
     client = OpenAICompatibleLLMClient(api_key="secret", model="model-x", base_url="https://llm.example/v1")
 
-    content = client(_order(), _evidence(), _fallback())
+    result = client(_order(), _evidence(), _fallback())
 
-    assert content == "texto final"
+    assert result.text == "texto final"
+    assert result.usage.model == "model-x"
     assert calls["url"] == "https://llm.example/v1/chat/completions"
     assert calls["timeout"] == 20
     assert calls["headers"]["Authorization"] == "Bearer secret"
     assert calls["payload"]["model"] == "model-x"
     assert "10 de 40" in calls["payload"]["messages"][1]["content"]
+
+
+def test_openai_compatible_client_captures_token_usage(monkeypatch):
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            # total > prompt+completion mirrors reasoning models (e.g. gemini-2.5-flash),
+            # where thinking tokens land in total but not completion.
+            return json.dumps(
+                {
+                    "choices": [{"message": {"content": "ok"}}],
+                    "usage": {"prompt_tokens": 226, "completion_tokens": 99, "total_tokens": 1026},
+                }
+            ).encode("utf-8")
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda request, timeout: FakeResponse())
+    client = OpenAICompatibleLLMClient(api_key="secret", model="model-x")
+
+    usage = client(_order(), _evidence(), _fallback()).usage
+
+    assert usage.model == "model-x"
+    assert usage.prompt_tokens == 226
+    assert usage.completion_tokens == 99
+    assert usage.total_tokens == 1026
+
+
+def test_openai_compatible_client_tolerates_missing_usage(monkeypatch):
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode("utf-8")
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda request, timeout: FakeResponse())
+    usage = OpenAICompatibleLLMClient(api_key="secret", model="model-x")(_order(), _evidence(), _fallback()).usage
+
+    assert usage.model == "model-x"
+    assert usage.prompt_tokens is None
+    assert usage.total_tokens is None

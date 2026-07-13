@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-12
-**Current Work:** agente-previsao-atraso - executing (T1-T11 complete, T7 complete, T12 next)
+**Current Work:** agente-previsao-atraso - executing (T1-T11, T7, T13 complete; T12 next)
 
 ---
 
@@ -121,7 +121,7 @@
 ## Handoff
 
 **Feature:** agente-previsao-atraso
-**Phase/Task:** Phase 4 in progress — T1-T11 done (implementation complete). Next: T12 report/demo documentation.
+**Phase/Task:** Phase 4 in progress — T1-T11, T7, T13 done (implementation complete). Next: T12 report/demo documentation.
 **Completed:**
 - T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
 - T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
@@ -133,11 +133,12 @@
 - T8 current branch — `backend/app/api.py`: health/prediction endpoints, friendly validation and service errors, event/latency logging, prepared-data and LLM environment wiring. 5 tests.
 - T9/T10 current branch — `frontend/src/api.js`, `frontend/src/App.jsx`, `frontend/src/styles.css`, `frontend/vite.config.js`: dashboard queue state, add-order form, selected-order classification through `/api/predict-delay`, risk badges, details panel, fallback/error states and Vite dev proxy.
 - T11 current branch — Docker packaging: backend image prepares `prepared_orders.jsonl` from versioned CSVs, frontend image serves Vite build with Nginx and proxies `/api/*`, compose starts both services with health checks.
-- T7 `a0d1d6e` — `backend/app/evaluate.py`: offline leave-one-out evaluation reusing the risk tool's hierarchy/thresholds via a precomputed O(n) segment index. Reports calibration/confusion by risk band, recall/precision for high and medium+high alarms, fallback rate and per-state breakdown. 5 tests. Real-data run (96,470 orders): high band 20.3% observed vs 8.1% base; high-alarm recall 5.5%, medium+high recall 44.9%; fallback rate 21.4%.
+- T7 `b1b721a` — `backend/app/evaluate.py`: offline leave-one-out evaluation reusing the risk tool's hierarchy/thresholds via a precomputed O(n) segment index. Reports calibration/confusion by risk band, recall/precision for high and medium+high alarms, fallback rate and per-state breakdown. 5 tests. Real-data run (96,470 orders): high band 20.3% observed vs 8.1% base; high-alarm recall 5.5%, medium+high recall 44.9%; fallback rate 21.4%.
+- T13 current branch — LLM token telemetry: `llm.py` parses `usage` into prompt/completion/total tokens (no server-side cost — reasoning models bill total > prompt+completion, so cost is derived offline in the report); `schemas.py` adds `LLMUsage` and `DelayPrediction.llm_usage`; `agent.py` threads usage through (null on deterministic/fallback paths); `api.py` logs `llm_model` + token counts. Live-verified against gemini-2.5-flash (226/99/1026 tokens). Closes DELAY-08 (report derives cost). 4 tests.
 - Reliability fixes `1b06215`/`c062748` — Compose loads `backend/.env`, prepared data is published atomically, Gemini returns plain text and the UI accumulates friendly fallback messages.
 - T10 mobile UAT — passed at 320 px and landscape for table scrolling, form flow, loading/success, API error recovery and result readability. Physical-device numeric keyboard behavior was not tested; inputs use numeric `inputMode` hints.
-**Test state:** 61 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes; Docker smoke passed for backend health, Nginx proxy, frontend and Gemini prediction.
-**Next step:** Finish T12 report/demo docs. Optional pre-report enhancement: cost/token telemetry (LLM `usage` currently discarded) so monitoring covers the accumulated-cost signal.
+**Test state:** 64 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes; Docker smoke passed for backend health, Nginx proxy, frontend and Gemini prediction.
+**Next step:** Finish T12 report/demo docs (evaluation numbers from T7, cost/latency/fallback signals from T13/T8 telemetry).
 **Blockers:** none active for T12. B-001 (dataset license) still open for report.
 **Uncommitted files:** none expected after the reliability documentation commit.
 **Branch:** main.

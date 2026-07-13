@@ -10,7 +10,7 @@ Equipes de logistica e atendimento precisam identificar pedidos com risco de atr
 - [x] Explicar os principais fatores da classificacao com evidencias e tamanho de amostra.
 - [x] Sugerir uma acao operacional clara para cada nivel de risco.
 - [x] Validar entrada e saida com guardrails e responder graciosamente quando faltar dado.
-- [ ] Registrar latencia, fallback, erros e custo/uso estimado de LLM para avaliacao. (latencia/fallback/erros ok; custo/uso de LLM ainda pendente)
+- [x] Registrar latencia, fallback, erros e custo/uso estimado de LLM para avaliacao.
 
 ## Out of Scope
 
@@ -130,7 +130,7 @@ Equipes de logistica e atendimento precisam identificar pedidos com risco de atr
 | DELAY-05 | P1: Recomendar acao | Implementation | Implemented (T5) |
 | DELAY-06 | P1: Guardrail de saida | Implementation | Implemented (T2/T5/T6) |
 | DELAY-07 | P1: Produto integrado | Implementation | Implemented (T9/T10/T11) |
-| DELAY-08 | P2: Observabilidade | Implementation | Implemented, minimal (T8); custo/tokens ainda nao registrado |
+| DELAY-08 | P2: Observabilidade | Implementation | Implemented (T8/T13; latencia, eventos, guardrails e tokens de LLM; custo derivado dos tokens no relatorio) |
 | DELAY-09 | P2: Avaliacao tecnica | Implementation | Implemented (T7) |
 
 **Coverage:** 9 total, 9 mapped to tasks, 0 unmapped.
