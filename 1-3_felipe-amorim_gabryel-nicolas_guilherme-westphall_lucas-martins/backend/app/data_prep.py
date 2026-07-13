@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 _DT_FORMAT = "%Y-%m-%d %H:%M:%S"
+_DT_FORMATS = (_DT_FORMAT, "%Y-%m-%d")  # raw CSVs use full timestamps; the API/form send date-only
 
 
 @dataclass
@@ -46,10 +47,12 @@ def _parse_dt(value: str) -> datetime | None:
     value = (value or "").strip()
     if not value:
         return None
-    try:
-        return datetime.strptime(value, _DT_FORMAT)
-    except ValueError:
-        return None
+    for fmt in _DT_FORMATS:
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    return None
 
 
 def _read_csv(path: Path):

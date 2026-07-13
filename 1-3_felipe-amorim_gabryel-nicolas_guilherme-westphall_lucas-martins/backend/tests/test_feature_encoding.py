@@ -54,6 +54,21 @@ def test_sellers_count_never_in_vector():
     assert "sellers_count" not in features_from_order_input(order)
 
 
+def test_date_only_strings_yield_promised_days():
+    # the dashboard/API send date-only strings (YYYY-MM-DD), not full timestamps;
+    # promised_days must still be computed instead of silently dropping to None.
+    order = OrderInput(
+        order_id="o3",
+        customer_state="AL",
+        seller_state="SP",
+        order_purchase_timestamp="2026-07-13",
+        order_estimated_delivery_date="2026-07-18",
+    )
+    vector = features_from_order_input(order)
+    assert vector["promised_days"] == 5.0
+    assert vector["purchase_month"] == 7
+
+
 def test_missing_input_fields_become_none_without_error():
     order = OrderInput(order_id="o2", customer_state="BA", seller_state="MG")
     vector = features_from_order_input(order)

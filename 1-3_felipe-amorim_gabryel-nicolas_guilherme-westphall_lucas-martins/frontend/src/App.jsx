@@ -549,6 +549,9 @@ function toApiPayload(order) {
     customer_state: order.customer_state,
     seller_state: order.seller_state,
     product_category_name: order.product_category_name,
+    // classificação de um pedido recém-criado: compra = hoje, para que
+    // promised_days = data prometida − hoje chegue ao modelo.
+    order_purchase_timestamp: todayIso(),
     order_estimated_delivery_date: order.order_estimated_delivery_date,
     freight_value: order.freight_value,
     price: order.price,
@@ -556,6 +559,14 @@ function toApiPayload(order) {
     payment_type: order.payment_type,
     payment_installments: order.payment_installments,
   };
+}
+
+function todayIso() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function optionalString(value) {
