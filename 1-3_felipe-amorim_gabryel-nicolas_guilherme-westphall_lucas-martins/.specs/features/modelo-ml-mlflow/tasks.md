@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/modelo-ml-mlflow/design.md`
-**Status**: In Progress — Batch 1 (T1–T7) dispatched
+**Status**: Done — Verifier PASS (27/27 ACs, 89 tests)
 
 ---
 
