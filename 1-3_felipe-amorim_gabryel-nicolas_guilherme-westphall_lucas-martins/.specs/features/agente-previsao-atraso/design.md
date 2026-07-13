@@ -94,7 +94,7 @@ class LLMExplanationAction:
 - O guardrail compara a acao da LLM com a politica: baixa confianca exige revisao humana; risco alto exige acompanhamento/comunicacao preventiva; risco baixo nao pode escalar para intervencao urgente sem evidencia.
 - Resposta vazia, malformada, sem evidencia, incompatibilidade de acao ou indisponibilidade da LLM aciona fallback deterministico para explicacao e acao.
 
-**Estado atual:** a LLM retorna apenas uma string usada como explicacao, enquanto `recommended_action` vem sempre de `explain_risk()`. O prompt tambem pede um proximo passo dentro da explicacao, o que causa duplicacao na interface. A migracao para o contrato acima esta pendente.
+**Estado implementado:** o cliente solicita JSON Schema estrito com `explanation`, `action_intent` e `recommended_action`. O agente aceita a redacao da LLM apenas quando a intencao fechada coincide com a politica deterministica; resposta malformada, vazia, incompatibilidade ou falha substitui explicacao e acao pelo fallback seguro.
 
 ### API
 

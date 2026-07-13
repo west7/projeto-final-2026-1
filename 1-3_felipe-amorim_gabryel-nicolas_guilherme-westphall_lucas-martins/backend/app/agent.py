@@ -30,7 +30,9 @@ class DelayAgent:
             explanation_result = safe_explanation(str(exc))
 
         guardrails.extend(explanation_result.guardrails)
-        explanation, llm_usage = self._generate_llm_explanation(order, evidence, explanation_result, guardrails)
+        explanation, recommended_action, llm_usage = self._generate_llm_response(
+            order, evidence, explanation_result, guardrails
+        )
 
         latency_ms = max(0, int((perf_counter() - started) * 1000))
         return DelayPrediction(
@@ -39,7 +41,7 @@ class DelayAgent:
             risk_level=evidence.risk_level,
             confidence=evidence.confidence,
             explanation=explanation,
-            recommended_action=explanation_result.recommended_action,
+            recommended_action=recommended_action,
             evidence=evidence,
             guardrails=guardrails,
             fallback_used=evidence.fallback_used,
@@ -47,31 +49,36 @@ class DelayAgent:
             llm_usage=llm_usage,
         )
 
-    def _generate_llm_explanation(
+    def _generate_llm_response(
         self,
         order: OrderInput,
         evidence: RiskEvidence,
         fallback: ExplanationResult,
         guardrails: list[str],
-    ) -> tuple[str, LLMUsage | None]:
+    ) -> tuple[str, str, LLMUsage | None]:
         if self.llm_client is None:
             guardrails.append("llm_unconfigured")
-            return fallback.explanation, None
+            return fallback.explanation, fallback.recommended_action, None
 
         try:
             generated = self.llm_client(order, evidence, fallback)
         except Exception:
             guardrails.append("llm_fallback")
-            return fallback.explanation, None
+            return fallback.explanation, fallback.recommended_action, None
 
-        # A client may return raw text (deterministic/test paths) or an LLMResult with usage.
-        text = generated.text if isinstance(generated, LLMResult) else generated
-        usage = generated.usage if isinstance(generated, LLMResult) else None
+        if isinstance(generated, LLMResult):
+            response = generated.response
+            if response.action_intent != fallback.action_intent:
+                guardrails.append("llm_fallback:action_mismatch")
+                return fallback.explanation, fallback.recommended_action, None
+            return response.explanation, response.recommended_action, generated.usage
 
-        if not text or not text.strip():
+        # Raw-text clients remain supported for deterministic/test integrations,
+        # but cannot override the safe action policy.
+        if not generated or not generated.strip():
             guardrails.append("llm_fallback:empty_response")
-            return fallback.explanation, None
-        return text.strip(), usage
+            return fallback.explanation, fallback.recommended_action, None
+        return generated.strip(), fallback.recommended_action, None
 
 
 def classify_order(

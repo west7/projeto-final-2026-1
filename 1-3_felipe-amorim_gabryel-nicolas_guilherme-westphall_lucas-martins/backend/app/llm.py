@@ -13,7 +13,7 @@ import urllib.request
 from dataclasses import dataclass
 
 from app.explanation import ExplanationResult
-from app.schemas import LLMUsage, OrderInput, RiskEvidence
+from app.schemas import LLMGeneratedResponse, LLMUsage, OrderInput, RiskEvidence
 
 DEFAULT_BASE_URL = "https://api.openai.com/v1"
 DEFAULT_MODEL = "gpt-4o-mini"
@@ -25,14 +25,14 @@ class LLMClientError(RuntimeError):
 
 @dataclass(frozen=True)
 class LLMResult:
-    """An LLM explanation plus the raw token usage for that call.
+    """Structured LLM output plus the raw token usage for that call.
 
     We log token counts as a hard fact and derive cost offline in the report:
     a per-1K price is a time-varying assumption, and for reasoning models the
     billed `total_tokens` exceeds `prompt + completion`, so a naive per-call
     formula would undercount. Keeping tokens here lets the report price them.
     """
-    text: str
+    response: LLMGeneratedResponse
     usage: LLMUsage
 
 
@@ -54,9 +54,9 @@ class OpenAICompatibleLLMClient:
                     "role": "system",
                     "content": (
                         "Voce e um agente operacional de logistica. Responda em portugues do Brasil, "
-                        "com explicacao curta, acionavel e fiel as evidencias numericas fornecidas. "
-                        "Nao invente dados nem prometa acao automatica. Responda somente em texto puro, "
-                        "sem Markdown, titulos, listas ou asteriscos, usando no maximo dois paragrafos curtos."
+                        "com explicacao curta e fiel as evidencias numericas fornecidas. "
+                        "Nao invente dados nem prometa acao automatica. Separe a justificativa da acao "
+                        "e responda estritamente conforme o schema JSON solicitado."
                     ),
                 },
                 {
@@ -65,6 +65,14 @@ class OpenAICompatibleLLMClient:
                 },
             ],
             "temperature": 0.2,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "delay_explanation_action",
+                    "strict": True,
+                    "schema": LLMGeneratedResponse.model_json_schema(),
+                },
+            },
         }
         if self.reasoning_effort:
             payload["reasoning_effort"] = self.reasoning_effort
@@ -91,7 +99,11 @@ class OpenAICompatibleLLMClient:
 
         if not content:
             raise LLMClientError("llm_response_empty")
-        return LLMResult(text=content, usage=self._usage(body.get("usage")))
+        try:
+            generated = LLMGeneratedResponse.model_validate_json(content)
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise LLMClientError("llm_response_invalid_structure") from exc
+        return LLMResult(response=generated, usage=self._usage(body.get("usage")))
 
     def _usage(self, raw: dict | None) -> LLMUsage:
         raw = raw or {}
@@ -119,7 +131,9 @@ def build_llm_client_from_env() -> OpenAICompatibleLLMClient | None:
 def _build_prompt(order: OrderInput, evidence: RiskEvidence, fallback: ExplanationResult) -> str:
     return "\n".join(
         [
-            "Explique a previsao de atraso e recomende o proximo passo.",
+            "Gere os campos explanation, action_intent e recommended_action.",
+            "Em explanation, justifique o risco sem recomendar o proximo passo. Nao repita a acao nesse campo.",
+            "Use action_intent apenas entre normal_flow, monitor, prioritize e human_review.",
             f"Pedido: {order.order_id}",
             f"Rota: vendedor {order.seller_state} -> cliente {order.customer_state}",
             f"Categoria: {order.product_category_name or 'nao informada'}",
@@ -128,8 +142,13 @@ def _build_prompt(order: OrderInput, evidence: RiskEvidence, fallback: Explanati
             f"Amostra historica: {evidence.sample_size}",
             f"Recorte usado: {evidence.segment_used}",
             f"Fallback usado: {evidence.fallback_used}",
+            (
+                "O valor de Risco vem do scorer (do modelo calibrado quando isso aparece nas evidencias). "
+                "A amostra e o recorte sao contexto historico explicativo e nao e a fonte da probabilidade "
+                "quando o modelo calibrado foi usado."
+            ),
             "Evidencias:",
             *[f"- {factor}" for factor in evidence.factors],
-            f"Acao recomendada pelo fallback deterministico: {fallback.recommended_action}",
+            f"Acao segura de referencia: {fallback.recommended_action}",
         ]
     )

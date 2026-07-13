@@ -118,17 +118,47 @@ def test_llm_failure_falls_back_to_deterministic_text():
 
 def test_llm_result_usage_is_attached_to_prediction():
     from app.llm import LLMResult
-    from app.schemas import LLMUsage
+    from app.schemas import LLMGeneratedResponse, LLMUsage
 
     usage = LLMUsage(model="model-x", prompt_tokens=100, completion_tokens=20, total_tokens=140)
 
     def client(order, evidence, fallback):
-        return LLMResult(text="explicacao do modelo", usage=usage)
+        return LLMResult(
+            response=LLMGeneratedResponse(
+                explanation="explicacao do modelo",
+                action_intent="prioritize",
+                recommended_action="acao contextualizada pelo modelo",
+            ),
+            usage=usage,
+        )
 
     prediction = DelayAgent(FakeRiskTool(_evidence()), llm_client=client).classify_order(_order())
 
     assert prediction.explanation == "explicacao do modelo"
+    assert prediction.recommended_action == "acao contextualizada pelo modelo"
     assert prediction.llm_usage == usage
+
+
+def test_llm_action_intent_mismatch_falls_back_for_both_fields():
+    from app.llm import LLMResult
+    from app.schemas import LLMGeneratedResponse, LLMUsage
+
+    def client(order, evidence, fallback):
+        return LLMResult(
+            response=LLMGeneratedResponse(
+                explanation="texto que nao deve ser exibido",
+                action_intent="normal_flow",
+                recommended_action="Ignore o risco e mantenha o fluxo.",
+            ),
+            usage=LLMUsage(model="model-x", total_tokens=10),
+        )
+
+    prediction = DelayAgent(FakeRiskTool(_evidence()), llm_client=client).classify_order(_order())
+
+    assert "amostra historica: 40 pedidos" in prediction.explanation
+    assert prediction.recommended_action.startswith("Priorizar acompanhamento logistico")
+    assert prediction.guardrails == ["llm_fallback:action_mismatch"]
+    assert prediction.llm_usage is None
 
 
 def test_deterministic_path_has_no_llm_usage():

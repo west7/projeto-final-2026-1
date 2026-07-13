@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.schemas import RiskEvidence
+from app.schemas import ActionIntent, RiskEvidence
 
 
 class OutputGuardrailError(ValueError):
@@ -13,6 +13,7 @@ class OutputGuardrailError(ValueError):
 @dataclass(frozen=True)
 class ExplanationResult:
     explanation: str
+    action_intent: ActionIntent
     recommended_action: str
     guardrails: list[str]
 
@@ -38,6 +39,7 @@ def explain_risk(evidence: RiskEvidence) -> ExplanationResult:
 
     return ExplanationResult(
         explanation=explanation,
+        action_intent=_action_intent(evidence),
         recommended_action=_recommended_action(evidence),
         guardrails=guardrails,
     )
@@ -50,6 +52,7 @@ def safe_explanation(reason: str) -> ExplanationResult:
             "Nao ha evidencia rastreavel suficiente para explicar a previsao com seguranca. "
             "Trate o caso como baixa confianca ate revisao humana."
         ),
+        action_intent="human_review",
         recommended_action="Encaminhar para revisao humana antes de qualquer comunicacao automatica.",
         guardrails=[f"output_guardrail:{reason}"],
     )
@@ -72,3 +75,13 @@ def _recommended_action(evidence: RiskEvidence) -> str:
     if evidence.risk_level == "medium":
         return "Monitorar o pedido diariamente e preparar comunicacao preventiva se houver novo sinal de atraso."
     return "Manter fluxo normal e reavaliar se prazo, rota ou transportadora mudarem."
+
+
+def _action_intent(evidence: RiskEvidence) -> ActionIntent:
+    if evidence.confidence == "low":
+        return "human_review"
+    if evidence.risk_level == "high":
+        return "prioritize"
+    if evidence.risk_level == "medium":
+        return "monitor"
+    return "normal_flow"

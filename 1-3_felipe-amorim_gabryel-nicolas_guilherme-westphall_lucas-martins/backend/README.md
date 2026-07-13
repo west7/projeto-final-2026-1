@@ -87,8 +87,11 @@ The API works in two modes with an identical contract:
 
 ## LLM Configuration
 
-The agent is designed to use an LLM for the primary explanation/action text and
-fall back to deterministic text when the provider is unavailable.
+The agent requests a strict structured response (`explanation`, closed
+`action_intent`, `recommended_action`) for the primary explanation/action text.
+The LLM wording is accepted only when its intent matches the deterministic
+policy; malformed, incompatible or unavailable responses fall back safely for
+both visible fields.
 
 Environment variables for the OpenAI-compatible client:
 

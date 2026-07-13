@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ValidationError, field_validator
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
 BRAZILIAN_UFS = {
     "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS",
@@ -57,6 +59,27 @@ class LLMUsage(BaseModel):
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
     total_tokens: int | None = None
+
+
+ActionIntent = Literal["normal_flow", "monitor", "prioritize", "human_review"]
+
+
+class LLMGeneratedResponse(BaseModel):
+    """Structured language output; policy compatibility is checked by the agent."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    explanation: str
+    action_intent: ActionIntent
+    recommended_action: str
+
+    @field_validator("explanation", "recommended_action")
+    @classmethod
+    def _non_empty_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("must not be empty")
+        return value
 
 
 class DelayPrediction(BaseModel):

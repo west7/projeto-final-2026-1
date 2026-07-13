@@ -422,10 +422,10 @@ T12 -> T15 -> T16 -> T17 -> T18
 
 **Done when:**
 
-- [ ] Provider request uses a strict JSON schema.
-- [ ] Empty, malformed and incomplete responses are rejected.
-- [ ] Prompt distinguishes model probability from historical context and does not duplicate the action inside the explanation.
-- [ ] Unit tests cover the contract and token telemetry remains intact.
+- [x] Provider request uses a strict JSON schema.
+- [x] Empty, malformed and incomplete responses are rejected.
+- [x] Prompt distinguishes model probability from historical context and does not duplicate the action inside the explanation.
+- [x] Unit tests cover the contract and token telemetry remains intact.
 
 **Tests:** unit
 **Gate:** backend quick gate
@@ -441,10 +441,10 @@ T12 -> T15 -> T16 -> T17 -> T18
 
 **Done when:**
 
-- [ ] Action policy exposes one of `normal_flow`, `monitor`, `prioritize` or `human_review`.
-- [ ] Compatible structured LLM output supplies both visible fields.
-- [ ] Mismatch, empty content and provider failure use both deterministic fallback fields.
-- [ ] Legacy raw-text test clients cannot override the deterministic action.
+- [x] Action policy exposes one of `normal_flow`, `monitor`, `prioritize` or `human_review`.
+- [x] Compatible structured LLM output supplies both visible fields.
+- [x] Mismatch, empty content and provider failure use both deterministic fallback fields.
+- [x] Legacy raw-text test clients cannot override the deterministic action.
 
 **Tests:** unit/integration
 **Gate:** backend full gate

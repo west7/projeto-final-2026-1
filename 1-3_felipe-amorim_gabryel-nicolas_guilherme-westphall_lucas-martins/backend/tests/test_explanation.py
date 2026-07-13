@@ -32,17 +32,18 @@ def test_explanation_cites_score_segment_sample_and_factors():
 
 
 @pytest.mark.parametrize(
-    "risk_level,expected_action",
+    "risk_level,expected_action,expected_intent",
     [
-        ("high", "Priorizar acompanhamento logistico"),
-        ("medium", "Monitorar o pedido diariamente"),
-        ("low", "Manter fluxo normal"),
+        ("high", "Priorizar acompanhamento logistico", "prioritize"),
+        ("medium", "Monitorar o pedido diariamente", "monitor"),
+        ("low", "Manter fluxo normal", "normal_flow"),
     ],
 )
-def test_action_differs_by_risk_level(risk_level, expected_action):
+def test_action_differs_by_risk_level(risk_level, expected_action, expected_intent):
     result = explain_risk(_evidence(risk_level=risk_level))
 
     assert result.recommended_action.startswith(expected_action)
+    assert result.action_intent == expected_intent
 
 
 def test_low_confidence_recommends_human_review():
@@ -50,6 +51,7 @@ def test_low_confidence_recommends_human_review():
 
     assert "revisao humana" in result.explanation
     assert result.recommended_action == "Encaminhar para revisao humana; historico comparavel insuficiente."
+    assert result.action_intent == "human_review"
     assert "low_confidence" in result.guardrails
 
 
@@ -77,4 +79,5 @@ def test_safe_explanation_returns_human_review_action():
 
     assert "evidencia rastreavel suficiente" in result.explanation
     assert "revisao humana" in result.recommended_action
+    assert result.action_intent == "human_review"
     assert result.guardrails == ["output_guardrail:missing_factors"]

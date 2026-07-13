@@ -48,7 +48,7 @@
 **Decision:** A LLM deve produzir `explanation` e `recommended_action` como campos estruturados. A politica deterministica define a acao segura de referencia, valida a compatibilidade da acao gerada com risco/confianca e assume ambos os campos quando a LLM falhar ou violar guardrails.
 **Reason:** O comportamento atual pede que a LLM recomende uma acao dentro da explicacao, mas a API exibe separadamente a acao deterministica, causando repeticao e deixando a acao efetivamente fora do caminho primario da LLM.
 **Trade-off:** A saida estruturada e o guardrail semantico adicionam validacao e testes ao cliente LLM, mas preservam clareza, seguranca e alinhamento com AD-005.
-**Impact:** `backend/app/llm.py` devera retornar explicacao e acao separadas; `backend/app/agent.py` devera usar a saida validada da LLM e manter `explain_risk()` como fallback seguro. Implementacao ainda pendente.
+**Impact:** Implementado em T16/T17: `backend/app/llm.py` retorna os campos separados sob JSON Schema; `backend/app/agent.py` valida `action_intent` e mantém `explain_risk()` como fallback seguro para ambos os textos.
 
 ### AD-007: Frontend e backend no Render com custo zero como alvo (2026-07-12)
 
@@ -134,7 +134,7 @@ _None active._
 - [x] Confirmar licenca oficial do dataset na fonte.
 - [x] Definir onde hospedar API e frontend: Render; ver `DEPLOYMENT.md`.
 - [x] Evitar referencias a rascunhos locais nao commitados na documentacao versionada.
-- [ ] Implementar AD-006: resposta estruturada da LLM, guardrail da acao e fallback deterministico.
+- [x] Implementar AD-006: resposta estruturada da LLM, guardrail da acao e fallback deterministico.
 - [ ] Concluir UAT restante de AD-007: cold start controlado, fallback publico e memoria no Render.
 
 ---
@@ -148,10 +148,10 @@ _None active._
 ## Handoff
 
 **Feature:** agente-previsao-atraso — final refinements on `main`.
-**Current task:** T15 documentation/setup sync, followed by T16-T18 (structured LLM output, action compatibility and session metrics).
+**Current task:** T18, observabilidade da sessao no dashboard. T15-T17 concluidas.
 **Implemented baseline:** public Render frontend/API, calibrated model behind `ModelRiskTool`, historical evidence/fallback, optional MLflow, report and demo video.
 **Evaluation evidence:** 96,470 orders; high-alarm recall 5.5% -> 37.6%, precision 20.3% -> 32.2%, fallback 21.4% -> 0%; committed in `backend/data/eval_{historical,model}.json`.
 **Public URLs:** `https://olist-delay-dashboard.onrender.com/` and `https://olist-delay-agent-api.onrender.com/`.
-**Test baseline:** 93 backend tests collected; local venv must install both requirements files before the complete collection can run.
+**Test state:** 98 backend tests aprovados apos AD-006; o ambiente local instala ambos os arquivos de requisitos.
 **Remaining deploy UAT:** controlled cold start, public deterministic fallback and Render memory observation. These do not block T15-T18.
 **Blockers:** none.

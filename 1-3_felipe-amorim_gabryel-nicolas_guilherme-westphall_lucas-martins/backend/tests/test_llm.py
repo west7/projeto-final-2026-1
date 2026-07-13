@@ -1,7 +1,9 @@
 import json
 
 from app.explanation import ExplanationResult
-from app.llm import OpenAICompatibleLLMClient, build_llm_client_from_env
+import pytest
+
+from app.llm import LLMClientError, OpenAICompatibleLLMClient, build_llm_client_from_env
 from app.schemas import OrderInput, RiskEvidence
 
 
@@ -24,9 +26,20 @@ def _evidence():
 def _fallback():
     return ExplanationResult(
         explanation="fallback explanation",
+        action_intent="prioritize",
         recommended_action="fallback action",
         guardrails=[],
     )
+
+
+def _structured_content(**overrides):
+    content = {
+        "explanation": "O risco e alto porque o modelo estimou 25% de probabilidade.",
+        "action_intent": "prioritize",
+        "recommended_action": "Priorize o acompanhamento deste pedido com a equipe logistica.",
+    }
+    content.update(overrides)
+    return json.dumps(content)
 
 
 def test_build_llm_client_from_env_returns_none_without_api_key(monkeypatch):
@@ -59,7 +72,7 @@ def test_build_llm_client_from_env_defaults_reasoning_effort_to_none(monkeypatch
     assert build_llm_client_from_env().reasoning_effort == "none"
 
 
-def test_openai_compatible_client_sends_evidence_and_reads_content(monkeypatch):
+def test_openai_compatible_client_sends_schema_evidence_and_reads_structured_content(monkeypatch):
     calls = {}
 
     class FakeResponse:
@@ -70,7 +83,7 @@ def test_openai_compatible_client_sends_evidence_and_reads_content(monkeypatch):
             return False
 
         def read(self):
-            return json.dumps({"choices": [{"message": {"content": " texto final "}}]}).encode("utf-8")
+            return json.dumps({"choices": [{"message": {"content": _structured_content()}}]}).encode("utf-8")
 
     def fake_urlopen(request, timeout):
         calls["url"] = request.full_url
@@ -84,14 +97,20 @@ def test_openai_compatible_client_sends_evidence_and_reads_content(monkeypatch):
 
     result = client(_order(), _evidence(), _fallback())
 
-    assert result.text == "texto final"
+    assert result.response.explanation.startswith("O risco e alto")
+    assert result.response.action_intent == "prioritize"
+    assert result.response.recommended_action.startswith("Priorize")
     assert result.usage.model == "model-x"
     assert calls["url"] == "https://llm.example/v1/chat/completions"
     assert calls["timeout"] == 20
     assert calls["headers"]["Authorization"] == "Bearer secret"
     assert calls["payload"]["model"] == "model-x"
     assert calls["payload"]["reasoning_effort"] == "none"  # default disables Gemini thinking
+    assert calls["payload"]["response_format"]["type"] == "json_schema"
+    assert calls["payload"]["response_format"]["json_schema"]["strict"] is True
     assert "10 de 40" in calls["payload"]["messages"][1]["content"]
+    assert "nao e a fonte da probabilidade" in calls["payload"]["messages"][1]["content"]
+    assert "Nao repita a acao" in calls["payload"]["messages"][1]["content"]
 
 
 def test_openai_compatible_client_omits_reasoning_effort_when_blank(monkeypatch):
@@ -105,7 +124,7 @@ def test_openai_compatible_client_omits_reasoning_effort_when_blank(monkeypatch)
             return False
 
         def read(self):
-            return json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode("utf-8")
+            return json.dumps({"choices": [{"message": {"content": _structured_content()}}]}).encode("utf-8")
 
     def fake_urlopen(request, timeout):
         calls["payload"] = json.loads(request.data.decode("utf-8"))
@@ -132,7 +151,7 @@ def test_openai_compatible_client_captures_token_usage(monkeypatch):
             # where thinking tokens land in total but not completion.
             return json.dumps(
                 {
-                    "choices": [{"message": {"content": "ok"}}],
+                    "choices": [{"message": {"content": _structured_content()}}],
                     "usage": {"prompt_tokens": 226, "completion_tokens": 99, "total_tokens": 1026},
                 }
             ).encode("utf-8")
@@ -157,7 +176,7 @@ def test_openai_compatible_client_tolerates_missing_usage(monkeypatch):
             return False
 
         def read(self):
-            return json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode("utf-8")
+            return json.dumps({"choices": [{"message": {"content": _structured_content()}}]}).encode("utf-8")
 
     monkeypatch.setattr("urllib.request.urlopen", lambda request, timeout: FakeResponse())
     usage = OpenAICompatibleLLMClient(api_key="secret", model="model-x")(_order(), _evidence(), _fallback()).usage
@@ -165,3 +184,29 @@ def test_openai_compatible_client_tolerates_missing_usage(monkeypatch):
     assert usage.model == "model-x"
     assert usage.prompt_tokens is None
     assert usage.total_tokens is None
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        "nao e json",
+        json.dumps({"explanation": "ok"}),
+        _structured_content(explanation="   "),
+        _structured_content(action_intent="invented_action"),
+    ],
+)
+def test_openai_compatible_client_rejects_invalid_structured_content(monkeypatch, content):
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return json.dumps({"choices": [{"message": {"content": content}}]}).encode("utf-8")
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda request, timeout: FakeResponse())
+
+    with pytest.raises(LLMClientError, match="llm_response_invalid_structure"):
+        OpenAICompatibleLLMClient(api_key="secret", model="model-x")(_order(), _evidence(), _fallback())

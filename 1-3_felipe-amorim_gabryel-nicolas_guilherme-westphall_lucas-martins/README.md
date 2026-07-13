@@ -97,7 +97,7 @@ Sem chave de LLM configurada, o agente continua funcionando normalmente com a ex
 **Rodar os testes e o build (gates de qualidade):**
 
 ```bash
-# backend: 93 testes automatizados (pytest)
+# backend: 98 testes automatizados (pytest)
 cd backend && ./.venv/bin/python -m pytest -q
 
 # frontend: build de produção
@@ -128,17 +128,17 @@ O MLflow registra os parâmetros e as métricas de cada avaliação e versiona o
 **Ferramentas do agente:**
 - `HistoricalRiskTool` - calcula risco por similaridade a segmentos históricos do Olist, com uma hierarquia de 7 fallbacks (do recorte mais específico - vendedor + cliente + categoria - até a base global), cada um com um tamanho mínimo de amostra exigido.
 - `ModelRiskTool` (evolução pós-MVP) - usa o classificador calibrado como fonte do score, mantendo a mesma interface e os mesmos fatores explicativos da ferramenta histórica.
-- Cliente LLM - não decide o risco; só transforma as evidências numéricas (score, confiança, amostra, recorte, fatores) em uma explicação curta e uma ação recomendada, em português, sem Markdown e sem inventar dados (restrição explícita no prompt de sistema).
+- Cliente LLM - não decide o risco; transforma as evidências numéricas em `explanation`, `action_intent` e `recommended_action` sob JSON Schema estrito. A ação só é aceita se sua intenção coincidir com a política determinística.
 
 **Dados e contexto:** o dataset Olist Brazilian E-Commerce (Kaggle, licença **CC BY-NC-SA 4.0** - uso não comercial, compatível com este trabalho acadêmico) é processado offline para gerar features por pedido sem vazamento temporal: apenas pedidos entregues recebem rótulo, `order_delivered_customer_date` só é usado para construir o alvo (nunca como entrada), e campos posteriores à entrega - reviews e status final - são excluídos das features. O resultado é `prepared_orders.jsonl`, com 96.470 pedidos entregues.
 
 **Guardrails:**
 - **Entrada** (Pydantic): estado do cliente e do vendedor precisam ser UFs brasileiras válidas; valores monetários e contagens não podem ser negativos; campos obrigatórios ausentes retornam erro de validação amigável, sem stack trace.
 - **Saída:** a explicação só é gerada se a evidência tiver fatores, um recorte (`segment_used`) e uma amostra maior que zero; se qualquer um faltar, o guardrail bloqueia o caminho normal e devolve uma resposta segura ("revisão humana", risco baixo, confiança baixa).
-- Quando a LLM não está configurada, falha, expira ou devolve texto vazio, o agente registra o evento (`llm_unconfigured` / `llm_fallback` / `llm_fallback:empty_response`) e usa a explicação determinística como resposta - o usuário nunca vê um erro técnico cru.
+- Quando a LLM não está configurada, falha, expira ou devolve uma estrutura inválida/incompatível, o agente registra o evento (`llm_unconfigured`, `llm_fallback` ou `llm_fallback:action_mismatch`) e usa explicação e ação determinísticas - o usuário nunca vê um erro técnico cru.
 
 **Iterações de design (o que não funcionou / mudou):**
-- A ação recomendada pela LLM e a ação da política determinística ficavam duplicadas na interface porque a LLM era instruída a sugerir a ação *dentro* da explicação; a equipe registrou essa limitação (AD-006) e planejou separar `explanation` e `recommended_action` como campos estruturados da LLM, com um guardrail semântico comparando a ação da LLM com a política de referência - implementação ainda pendente no momento desta entrega.
+- A primeira versão duplicava a ação dentro da explicação. A AD-006 resolveu isso separando os campos e adotando quatro intenções fechadas (`normal_flow`, `monitor`, `prioritize`, `human_review`); divergência em relação à política segura descarta ambos os textos gerados.
 - O baseline puramente histórico tinha discriminação fraca em alarmes de alto risco (recall de 5,5%), o que motivou a evolução pós-MVP para o modelo calibrado (ver seção de avaliação).
 
 ---
@@ -180,7 +180,7 @@ Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~
 
 **UX:** o painel exibe o nível de risco como badge, a explicação e a ação recomendada lado a lado, e trata de forma visível os estados de fallback (LLM indisponível), erro de API e carregamento - inclusive o estado de "aquecendo" durante o cold start do plano gratuito do Render. Validação manual em mobile (320px, paisagem) cobriu rolagem de tabela, formulário, loading e recuperação de erro; o comportamento do teclado numérico em dispositivo físico não foi testado (os campos usam apenas a dica `inputMode="numeric"`).
 
-**Testes automatizados:** 93 testes de backend (`pytest`), 0 falhas, cobrindo schemas/guardrails de entrada, ferramenta de risco, explicação/fallback, agente, API, cliente LLM, preparo de dados, encoding de features, treino, avaliação e MLflow. O frontend tem gate de build (`npm run build`), sem testes automatizados de componente.
+**Testes automatizados:** 98 testes de backend (`pytest`), 0 falhas, cobrindo schemas/guardrails de entrada, ferramenta de risco, explicação/fallback, agente, API, cliente LLM, preparo de dados, encoding de features, treino, avaliação e MLflow. O frontend tem gate de build (`npm run build`), sem testes automatizados de componente.
 
 ---
 
@@ -194,9 +194,9 @@ Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~
 
 **O que funcionou bem:** separar a ferramenta de risco (determinística, auditável) da camada de linguagem (LLM, responsável só por redigir) deu previsibilidade ao sistema mesmo quando a LLM falha - o fallback gracioso funcionou como planejado nos testes. A avaliação offline com dados reais (96.470 pedidos) expôs cedo a fraqueza do baseline histórico em alarmes de alto risco, o que justificou a evolução para o modelo calibrado dentro do prazo.
 
-**O que não funcionou como planejado:** a separação entre explicação e ação recomendada da LLM ficou pendente (AD-006) - hoje a ação sempre vem da política determinística, e o prompt da LLM ainda menciona um próximo passo dentro do texto, gerando alguma redundância na interface. O teste do teclado numérico em dispositivo físico e a validação completa de cold start/memória em produção também ficaram como itens em aberto no momento desta entrega.
+**O que não funcionou como planejado:** a primeira versão misturava a ação recomendada dentro da explicação da LLM. A iteração AD-006 corrigiu o contrato e preservou a política como guardrail, sem tornar a recomendação puramente determinística. A validação completa de cold start/memória em produção continua em aberto.
 
-**Próximos passos (com mais tempo):** implementar o contrato estruturado LLM (explicação + ação separadas, com guardrail semântico de compatibilidade); medir o pico de memória do backend no Render sob classificações simultâneas; investigar mais a fundo a disparidade regional de recall que persiste mesmo com o modelo calibrado.
+**Próximos passos (com mais tempo):** medir o pico de memória do backend no Render sob classificações simultâneas; investigar mais a fundo a disparidade regional de recall que persiste mesmo com o modelo calibrado; avaliar a qualidade das ações contextualizadas com exemplos rotulados por operadores.
 
 ---
 
