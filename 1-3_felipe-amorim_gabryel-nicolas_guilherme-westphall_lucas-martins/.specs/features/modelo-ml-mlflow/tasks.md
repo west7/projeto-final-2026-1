@@ -206,7 +206,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T7: Wire model into the API composition root
+### T7: Wire model into the API composition root ✅ DONE
 
 **What**: `_build_default_agent` selects `ModelRiskTool` when `MODEL_PATH` is set and loadable; else `HistoricalRiskTool`. `agent.py` untouched.
 **Where**: `backend/app/api.py` (modify) + `backend/tests/test_api.py`
@@ -218,10 +218,10 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] `MODEL_PATH` set + loadable → agent uses `ModelRiskTool`; unset/unloadable → `HistoricalRiskTool`; API contract unchanged.
-- [ ] Test: with a tiny trained model on disk + `MODEL_PATH`, `/predict-delay` returns a model-sourced score with non-empty evidence factors.
-- [ ] Test: `MODEL_PATH` unset → historical path, endpoint still 200.
-- [ ] Gate passes; test count increases (≥68 + all new).
+- [x] `MODEL_PATH` set + loadable → agent uses `ModelRiskTool`; unset/unloadable → `HistoricalRiskTool`; API contract unchanged. (Unloadable model still yields a `ModelRiskTool` that degrades to historical internally.)
+- [x] Test: with a tiny trained model on disk + `MODEL_PATH`, `/predict-delay` returns a model-sourced score with non-empty evidence factors.
+- [x] Test: `MODEL_PATH` unset → historical path, endpoint still 200.
+- [x] Gate passes; test count increases (≥68 + all new). 86 pass.
 
 **Tests**: integration · **Gate**: full
 

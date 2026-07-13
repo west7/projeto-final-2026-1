@@ -1,11 +1,14 @@
 import asyncio
 import json
 import logging
+from dataclasses import asdict
 
 import httpx
 
 from app.api import create_app
+from app.data_prep import OrderFeature
 from app.schemas import DelayPrediction, LLMUsage, RiskEvidence
+from app.train_model import train
 
 
 class FakeAgent:
@@ -180,3 +183,68 @@ def test_unavailable_agent_returns_friendly_service_error():
         "message": "O historico de pedidos nao esta disponivel no momento.",
     }
     assert "prepared_data_not_found" not in response.text
+
+
+def _order_feature(order_id, delayed):
+    return OrderFeature(
+        order_id=order_id,
+        delayed=delayed,
+        customer_state="SP" if delayed else "BA",
+        seller_state="RJ" if delayed else "MG",
+        same_state=False,
+        product_category_name="informatica" if delayed else "beleza",
+        purchase_month=3,
+        purchase_weekday=2,
+        promised_days=10.0,
+        total_price=100.0,
+        total_freight=10.0,
+        freight_ratio=0.1,
+        items_count=2,
+        sellers_count=1,
+        payment_type_main="credit_card",
+        max_installments=3,
+    )
+
+
+def _prepared_fixture(tmp_path):
+    path = tmp_path / "prepared.jsonl"
+    rows = [_order_feature(f"late-{i}", True) for i in range(12)]
+    rows += [_order_feature(f"ok-{i}", False) for i in range(12)]
+    with open(path, "w") as fh:
+        for row in rows:
+            fh.write(json.dumps(asdict(row)) + "\n")
+    return path
+
+
+def _offline_env(monkeypatch, prepared):
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("PREPARED_FEATURES_PATH", str(prepared))
+
+
+def test_model_path_set_returns_model_sourced_score(tmp_path, monkeypatch):
+    prepared = _prepared_fixture(tmp_path)
+    model_path = tmp_path / "model.joblib"
+    train(prepared, model_path, cv=2)
+    _offline_env(monkeypatch, prepared)
+    monkeypatch.setenv("MODEL_PATH", str(model_path))
+
+    response = _request(create_app(), "POST", "/predict-delay", json=_payload())
+
+    assert response.status_code == 200
+    factors = response.json()["evidence"]["factors"]
+    assert factors
+    assert factors[0].startswith("score do modelo calibrado")
+
+
+def test_model_path_unset_uses_historical_path(tmp_path, monkeypatch):
+    prepared = _prepared_fixture(tmp_path)
+    _offline_env(monkeypatch, prepared)
+    monkeypatch.delenv("MODEL_PATH", raising=False)
+
+    response = _request(create_app(), "POST", "/predict-delay", json=_payload())
+
+    assert response.status_code == 200
+    factors = response.json()["evidence"]["factors"]
+    assert factors
+    assert not factors[0].startswith("score do modelo calibrado")
