@@ -1,12 +1,12 @@
 # Testing
 
-**Analyzed:** 2026-07-09
+**Analyzed:** 2026-07-13
 
 ## Current State
 
 - Backend automated tests are configured with pytest.
 - Frontend has a build gate: `npm run build` from `frontend`.
-- Backend has a quick/full gate: `./.venv/bin/pytest` or `python -m pytest` from `backend` after dependencies are installed.
+- Backend has a full gate with 93 collected tests. Because collection imports the ML modules, install both `requirements.txt` and `requirements-ml.txt`.
 
 ## Test Coverage Matrix
 
@@ -14,7 +14,7 @@
 | --- | --- | --- | --- | --- |
 | Data prep | unit/integration | `./.venv/bin/pytest` | `python -m pytest` | Yes |
 | Risk tool | unit | `./.venv/bin/pytest` | `python -m pytest` | Yes |
-| Agent/API | integration | Not available | `python -m pytest` plus API smoke test | No until API fixture is isolated |
+| Agent/API | unit/integration | `./.venv/bin/python -m pytest -q` | same | Yes (fixtures are isolated) |
 | Frontend components | build/smoke | `npm run build` | `npm run build` | Yes |
 | Docker/deploy | smoke | Not available | `docker compose up` smoke check | No |
 
@@ -27,20 +27,20 @@ cd frontend
 npm run build
 ```
 
-**Planned backend gate:**
+**Backend gate:**
 
 ```bash
 cd backend
-./.venv/bin/pytest
+./.venv/bin/python -m pytest -q
 ```
 
-**Planned full gate:**
+**Full local gate:**
 
 ```bash
 cd frontend
 npm run build
 cd ../backend
-python -m pytest
+./.venv/bin/python -m pytest -q
 ```
 
 ## Test Strategy
@@ -54,5 +54,5 @@ python -m pytest
 ## Test Count Baseline
 
 - Frontend automated tests: 0.
-- Backend automated tests: 48.
+- Backend automated tests: 93 collected before the final refinements.
 - Build gate exists but no test assertions yet.

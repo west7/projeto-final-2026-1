@@ -6,7 +6,7 @@
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-ml.txt
 ```
 
 ## Gate (test command)
@@ -14,7 +14,7 @@ pip install -r requirements.txt
 Backend quick/full gate runs from `backend/`:
 
 ```bash
-pytest
+./.venv/bin/python -m pytest -q
 ```
 
 ## Prepared Data
@@ -80,9 +80,10 @@ The API works in two modes with an identical contract:
 - **Model-enabled** — install `requirements-ml.txt` and set `MODEL_PATH` to a
   trained `model.joblib`. Risk scores come from the calibrated model; evidence
   factors still come from the historical tool.
-- **Fallback (default)** — no sklearn and/or no `MODEL_PATH` (or an
-  absent/corrupt model file). The API imports and serves using the historical
-  segment-average scorer. This is the mode the free-tier deploy runs in.
+- **Fallback** — no sklearn and/or no `MODEL_PATH` (or an absent/corrupt model
+  file). The API imports and serves using the historical segment-average
+  scorer. The current Render image installs the ML dependencies, trains the
+  artifact during build and sets `MODEL_PATH`.
 
 ## LLM Configuration
 
@@ -95,6 +96,7 @@ Environment variables for the OpenAI-compatible client:
 - `LLM_MODEL` (default: `gpt-4o-mini`)
 - `LLM_BASE_URL` (default: `https://api.openai.com/v1`)
 - `LLM_TIMEOUT_SECONDS` (default: `20`)
+- `LLM_REASONING_EFFORT` (default: `none`; blank omits the provider field)
 
 ## Layout
 

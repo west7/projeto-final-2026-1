@@ -12,10 +12,10 @@ The delivered agent scores delay risk with `HistoricalRiskTool` — a segment-av
 
 ## Goals
 
-- [ ] Replace the risk-number source with a trained, calibrated classifier that **beats 5.5% high-alarm recall while holding per-band calibration** on the same leave-one-out eval.
-- [ ] Produce **report-ready evidence**: baseline-vs-model comparison (metrics + per-state breakdown) as a durable artifact and as comparable MLflow runs.
-- [ ] Keep every existing behavior intact: same API contract, same evidence factors, graceful degradation when the model or MLflow is absent.
-- [ ] Track evaluation runs and register the model in **MLflow**, strictly optional — API and eval run with no MLflow server present.
+- [x] Replace the risk-number source with a trained, calibrated classifier that **beats 5.5% high-alarm recall while holding per-band calibration** on the same evaluation harness.
+- [x] Produce **report-ready evidence**: baseline-vs-model comparison (metrics + per-state breakdown) as a durable artifact and as comparable MLflow runs.
+- [x] Keep every existing behavior intact: same API contract, same evidence factors, graceful degradation when the model or MLflow is absent.
+- [x] Track evaluation runs and register the model in **MLflow**, strictly optional — API and eval run with no MLflow server present.
 
 ## Out of Scope
 
@@ -24,7 +24,7 @@ The delivered agent scores delay risk with `HistoricalRiskTool` — a segment-av
 | Online/real-time model retraining | Batch-trained artifact is enough for the delivery; retrain is a manual script. |
 | Deep models / XGBoost / LightGBM | sklearn `HistGradientBoostingClassifier` fits ~96k rows / ≤14 features; extra deps, no gain. |
 | `sellers_count` as a model feature | Not reconstructable from `OrderInput` at request time; excluded to avoid train/serve skew. |
-| LLM explanation changes | The LLM stage is untouched — it still only rewrites prose over the number. |
+| LLM explanation changes | Delivered separately under AD-006, without coupling the model feature to provider behavior. |
 | Hyperparameter search / AutoML | One documented config; tuning is not required to clear the acceptance bar. |
 | MLflow as a hard runtime dependency | Must degrade to no-op; the API image must build and serve without `mlflow` or a model file. |
 
@@ -165,23 +165,23 @@ The delivered agent scores delay risk with `HistoricalRiskTool` — a segment-av
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| ML-01 | P1: Model as risk source | Design | Pending |
-| ML-02 | P1: Shared feature derivation | Design | Pending |
-| ML-03 | P1: Model training artifact | Design | Pending |
-| ML-04 | P1: Graceful fallback (absent/broken model, missing deps) | Design | Pending |
-| ML-05 | P1: Evidence factors preserved from historical tool | Design | Pending |
-| ML-06 | P1: Offline eval `--scorer model` beats baseline recall + holds calibration | Design | Pending |
-| ML-08 | P1: Per-state breakdown + JSON comparison artifact for the report | Design | Pending |
-| MLF-01 | P1: MLflow logs eval runs (optional/no-op) | Design | Pending |
-| MLF-02 | P1: MLflow registers the model (optional) | Design | Pending |
-| MLF-03 | P2: Docker Compose mlflow profile, API independent | Design | Pending |
-| ML-07 | P3: Reproducible retrain command | Design | Pending |
+| ML-01 | P1: Model as risk source | Validation | Verified |
+| ML-02 | P1: Shared feature derivation | Validation | Verified |
+| ML-03 | P1: Model training artifact | Validation | Verified |
+| ML-04 | P1: Graceful fallback (absent/broken model, missing deps) | Validation | Verified |
+| ML-05 | P1: Evidence factors preserved from historical tool | Validation | Verified |
+| ML-06 | P1: Offline eval `--scorer model` beats baseline recall + holds calibration | Validation | Verified |
+| ML-08 | P1: Per-state breakdown + JSON comparison artifact for the report | Validation | Verified |
+| MLF-01 | P1: MLflow logs eval runs (optional/no-op) | Validation | Verified |
+| MLF-02 | P1: MLflow registers the model (optional) | Validation | Verified |
+| MLF-03 | P2: Docker Compose mlflow profile, API independent | Validation | Verified |
+| ML-07 | P3: Reproducible retrain command | Validation | Verified |
 
 **ID format:** `ML-NN` (model), `MLF-NN` (MLflow).
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 11 total, 0 mapped to tasks yet.
+**Coverage:** 11 total, all mapped to completed tasks and verified in `validation.md`.
 
 ---
 
@@ -204,9 +204,9 @@ Each output maps to a required section of the official report (`readme.md`) so n
 
 ## Success Criteria
 
-- [ ] `evaluate.py --scorer model` high-alarm recall > 5.5% and bands stay ordered (high > medium > low).
-- [ ] Per-state breakdown + a JSON comparison artifact exist and are committed as report evidence.
-- [ ] `/predict-delay` returns model-sourced scores with non-empty evidence factors; identical API contract.
-- [ ] API image builds and serves with no `mlflow`, no `scikit-learn` model file, no `MLFLOW_TRACKING_URI`.
+- [x] `evaluate.py --scorer model` high-alarm recall > 5.5% and bands stay ordered (high > medium > low).
+- [x] Per-state breakdown + a JSON comparison artifact exist and are committed as report evidence.
+- [x] `/predict-delay` returns model-sourced scores with non-empty evidence factors; identical API contract.
+- [x] API imports and serves in fallback mode with no `mlflow`, no `scikit-learn` model file and no `MLFLOW_TRACKING_URI`.
 - [ ] With MLflow configured, eval runs appear as comparable runs and the model is registered.
 - [ ] Every requirement maps to a report section (see Report Mapping) — no un-reportable work.

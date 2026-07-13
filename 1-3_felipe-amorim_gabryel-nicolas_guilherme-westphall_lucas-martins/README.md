@@ -97,7 +97,7 @@ Sem chave de LLM configurada, o agente continua funcionando normalmente com a ex
 **Rodar os testes e o build (gates de qualidade):**
 
 ```bash
-# backend: 92 testes automatizados (pytest)
+# backend: 93 testes automatizados (pytest)
 cd backend && ./.venv/bin/python -m pytest -q
 
 # frontend: build de produção
@@ -180,7 +180,7 @@ Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~
 
 **UX:** o painel exibe o nível de risco como badge, a explicação e a ação recomendada lado a lado, e trata de forma visível os estados de fallback (LLM indisponível), erro de API e carregamento - inclusive o estado de "aquecendo" durante o cold start do plano gratuito do Render. Validação manual em mobile (320px, paisagem) cobriu rolagem de tabela, formulário, loading e recuperação de erro; o comportamento do teclado numérico em dispositivo físico não foi testado (os campos usam apenas a dica `inputMode="numeric"`).
 
-**Testes automatizados:** 92 testes de backend (`pytest`), 0 falhas, cobrindo schemas/guardrails de entrada, ferramenta de risco, explicação/fallback, agente, API, cliente LLM, preparo de dados, encoding de features, treino, avaliação e MLflow. O frontend tem gate de build (`npm run build`), sem testes automatizados de componente.
+**Testes automatizados:** 93 testes de backend (`pytest`), 0 falhas, cobrindo schemas/guardrails de entrada, ferramenta de risco, explicação/fallback, agente, API, cliente LLM, preparo de dados, encoding de features, treino, avaliação e MLflow. O frontend tem gate de build (`npm run build`), sem testes automatizados de componente.
 
 ---
 

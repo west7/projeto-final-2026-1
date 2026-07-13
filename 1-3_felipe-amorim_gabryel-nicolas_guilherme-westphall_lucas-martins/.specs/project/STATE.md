@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-07-13
-**Current Work:** agente-previsao-atraso - executing (T14 deployed; remaining public UAT next)
+**Current Work:** agente-previsao-atraso - final refinements (T15-T18)
 
 ---
 
@@ -123,20 +123,19 @@ _None active._
 
 ## Deferred Ideas
 
-- [ ] Treinar um modelo supervisionado para comparar com o agente - Captured during: planejamento.
 - [ ] Usar reviews para analise pos-entrega e insights de satisfacao - Captured during: planejamento.
 - [ ] Adicionar autenticacao e perfis de operador - Captured during: planejamento.
-- [ ] Reavaliar MLflow, LangChain/LangGraph e observabilidade apos T7-T12 - Criterios em `TOOLING_REVIEW.md`; captured during: integracao da API.
+- [ ] Reavaliar LangChain/LangGraph somente se o fluxo ganhar multiplas ferramentas/etapas; criterios em `TOOLING_REVIEW.md`.
 
 ---
 
 ## Todos
 
-- [ ] Confirmar licenca oficial do dataset na fonte.
+- [x] Confirmar licenca oficial do dataset na fonte.
 - [x] Definir onde hospedar API e frontend: Render; ver `DEPLOYMENT.md`.
-- [ ] Evitar referencias a rascunhos locais nao commitados na documentacao versionada.
+- [x] Evitar referencias a rascunhos locais nao commitados na documentacao versionada.
 - [ ] Implementar AD-006: resposta estruturada da LLM, guardrail da acao e fallback deterministico.
-- [ ] Implementar AD-007 e validar os criterios de aceite em `DEPLOYMENT.md`.
+- [ ] Concluir UAT restante de AD-007: cold start controlado, fallback publico e memoria no Render.
 
 ---
 
@@ -148,38 +147,11 @@ _None active._
 
 ## Handoff
 
-**Feature:** modelo-ml-mlflow (post-MVP evolution, AD-008) — on branch `feat/modelo-ml-mlflow`
-**Phase/Task:** COMPLETE — all 10 tasks (T1–T10) done; Verifier PASS (27/27 ACs, 89 tests). Trying model-enabled Render deploy next.
-**modelo-ml-mlflow summary:**
-- Calibrated `HistGradientBoosting` + isotonic classifier is the risk-number source behind the same `estimate_delay_risk` seam (`agent.py` unchanged). `HistoricalRiskTool` stays as fallback + evidence-factor source. LLM stage unchanged.
-- Real-data evidence (96,470 orders, `data/eval_{historical,model}.json`): high-alarm recall **5.5%→37.6%**, precision **20.3%→32.2%**, fallback **21.4%→0%**, bands monotone (32.2/14.3/3.9%). Per-state bias collapsed: DF 0→26.5%, SC 0→35.8%, BA 0→51.6%, SP 1.7→19.4%, RJ 9.5→63.9%.
-- New: `feature_encoding.py` (shared train/serve, `sellers_count` excluded), `train_model.py`, `model_risk_tool.py`, `mlflow_tracking.py` (optional/no-op), `evaluate.py --scorer model` (out-of-fold), `requirements-ml.txt`, compose `mlflow` profile. `api._build_default_agent` selects `ModelRiskTool` when `MODEL_PATH` set.
-- Verifier caught a real latent bug: mlflow 3.14 skops serializer rejected the pipeline → fixed with `serialization_format="cloudpickle"`.
-- Model artifact (`data/model.joblib`) and MLflow local dirs are gitignored; only the two eval JSONs are committed as report evidence.
-**Test state:** 89 passed, 0 failed (`cd backend && ./.venv/bin/python -m pytest -q`).
-**Next step:** model-enabled Render deploy (Dockerfile trains at build + installs ml deps; `MODEL_PATH` in render.yaml). Watch the 512 MB Free-tier memory — Render Starter is the AD-007 contingency if it OOMs. Then wire the ML evidence into the T12 report (Avaliação + Impactos/ética sections).
+**Feature:** agente-previsao-atraso — final refinements on `main`.
+**Current task:** T15 documentation/setup sync, followed by T16-T18 (structured LLM output, action compatibility and session metrics).
+**Implemented baseline:** public Render frontend/API, calibrated model behind `ModelRiskTool`, historical evidence/fallback, optional MLflow, report and demo video.
+**Evaluation evidence:** 96,470 orders; high-alarm recall 5.5% -> 37.6%, precision 20.3% -> 32.2%, fallback 21.4% -> 0%; committed in `backend/data/eval_{historical,model}.json`.
+**Public URLs:** `https://olist-delay-dashboard.onrender.com/` and `https://olist-delay-agent-api.onrender.com/`.
+**Test baseline:** 93 backend tests collected; local venv must install both requirements files before the complete collection can run.
+**Remaining deploy UAT:** controlled cold start, public deterministic fallback and Render memory observation. These do not block T15-T18.
 **Blockers:** none.
-**Uncommitted files:** `.specs/project/ml-mlflow-plan.html` (untracked, intentionally not committed).
-**Branch:** `feat/modelo-ml-mlflow` (PR to `main`, not merged).
-**Prior feature (agente-previsao-atraso):** MVP complete on `main` — T1–T11/T7/T13 done, only T12 report remains (on hold). Baseline was 68 tests.
-**Completed:**
-- T1 `7154e85` — backend scaffold (`backend/`: app package, requirements.txt, pyproject pytest config, health smoke, README, .gitignore). Gate: `cd backend && ./.venv/bin/pytest`.
-- T2 `7eb6695` — `backend/app/schemas.py`: Pydantic v2 `OrderInput`/`RiskEvidence`/`DelayPrediction`, UF + non-negative guardrails, `format_validation_error()`. 17 tests.
-- T3 `4ab224a` — `backend/app/data_prep.py`: `build_order_features()`/`load_prepared_features()`, stdlib-only, delayed target, leakage excluded, aggregates. 7 tests. Real-data smoke: 96,470 delivered / 8.112% delayed (matches L-001).
-- T4 current branch — `backend/app/risk_tool.py`: `HistoricalRiskTool`/`estimate_delay_risk()`, fallback hierarchy, risk score/level/confidence and factors. 5 tests.
-- T5 current branch — `backend/app/explanation.py`: deterministic explanation/action policy, low-confidence human review and output guardrail for missing evidence. 10 tests.
-- T6 current branch — `backend/app/agent.py`: `DelayAgent`/`classify_order()`, latency telemetry, fallback/guardrail events and LLM-first explanation flow. 6 tests.
-- Alignment current branch — `backend/app/llm.py`: OpenAI-compatible LLM client with environment configuration and fallback-safe errors. 3 tests.
-- T8 current branch — `backend/app/api.py`: health/prediction endpoints, friendly validation and service errors, event/latency logging, prepared-data and LLM environment wiring. 5 tests.
-- T9/T10 current branch — `frontend/src/api.js`, `frontend/src/App.jsx`, `frontend/src/styles.css`, `frontend/vite.config.js`: dashboard queue state, add-order form, selected-order classification through `/api/predict-delay`, risk badges, details panel, fallback/error states and Vite dev proxy.
-- T11 current branch — Docker packaging: backend image prepares `prepared_orders.jsonl` from versioned CSVs, frontend image serves Vite build with Nginx and proxies `/api/*`, compose starts both services with health checks.
-- T7 `b1b721a` — `backend/app/evaluate.py`: offline leave-one-out evaluation reusing the risk tool's hierarchy/thresholds via a precomputed O(n) segment index. Reports calibration/confusion by risk band, recall/precision for high and medium+high alarms, fallback rate and per-state breakdown. 5 tests. Real-data run (96,470 orders): high band 20.3% observed vs 8.1% base; high-alarm recall 5.5%, medium+high recall 44.9%; fallback rate 21.4%.
-- T13 current branch — LLM token telemetry: `llm.py` parses `usage` into prompt/completion/total tokens (no server-side cost — reasoning models bill total > prompt+completion, so cost is derived offline in the report); `schemas.py` adds `LLMUsage` and `DelayPrediction.llm_usage`; `agent.py` threads usage through (null on deterministic/fallback paths); `api.py` logs `llm_model` + token counts. Live-verified against gemini-2.5-flash (226/99/1026 tokens). Closes DELAY-08 (report derives cost). 4 tests.
-- Reliability fixes `1b06215`/`c062748` — Compose loads `backend/.env`, prepared data is published atomically, Gemini returns plain text and the UI accumulates friendly fallback messages.
-- T10 mobile UAT — passed at 320 px and landscape for table scrolling, form flow, loading/success, API error recovery and result readability. Physical-device numeric keyboard behavior was not tested; inputs use numeric `inputMode` hints.
-**Test state:** 67 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes with `VITE_API_BASE`; Render-target Docker image builds and starts on `PORT=10000`, health passes, raw CSVs are absent from runtime and idle memory was ~97 MiB locally.
-**Next step:** Finish T14 public UAT for controlled cold start, deterministic fallback and memory from the Render dashboard. Then implement AD-006 and finish T12 with the deployed URLs and measured evidence.
-**Blockers:** none active for T12. B-001 (dataset license) still open for report.
-**Uncommitted files:** none expected after the reliability documentation commit.
-**Branch:** main.
-**Notes:** Executing on `main` (matches T1). One sub-agent worker died on a transient API error mid-T3; T3 finished inline. Verifier not yet run — fires after feature's final task (T12).

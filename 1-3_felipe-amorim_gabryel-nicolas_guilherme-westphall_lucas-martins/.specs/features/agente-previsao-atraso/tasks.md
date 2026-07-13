@@ -35,6 +35,12 @@ T10 -> T11 -> T14 -> T12
 T13 ----------|
 ```
 
+### Phase 5: Final Refinements
+
+```text
+T12 -> T15 -> T16 -> T17 -> T18
+```
+
 ---
 
 ## Task Breakdown
@@ -325,10 +331,10 @@ T13 ----------|
 
 **Done when:**
 
-- [ ] Report includes app/repo links placeholders or final URLs.
-- [ ] Data source/license and known biases are documented.
-- [ ] Metrics, latency, fallback and guardrail behavior are documented.
-- [ ] Demo script covers normal, high-risk and fallback cases.
+- [x] Report includes app/repo links placeholders or final URLs.
+- [x] Data source/license and known biases are documented.
+- [x] Metrics, latency, fallback and guardrail behavior are documented.
+- [x] Demo script covers normal, high-risk and fallback cases.
 
 **Tests:** documentation review
 **Gate:** manual review
@@ -386,6 +392,81 @@ T13 ----------|
 **Tests:** build/deploy smoke + manual UAT
 **Gate:** full gate and public smoke
 
+---
+
+### T15: Synchronize final project documentation
+
+**What:** Align project status, stack, setup commands and completed model traceability with the implemented repository.
+**Where:** `.specs/project`, `.specs/codebase/TESTING.md`, feature checklists and `backend/README.md`
+**Depends on:** T12, T14
+**Requirement:** DELAY-08, DELAY-09
+
+**Done when:**
+
+- [x] Project/roadmap no longer describe the backend and model as merely planned.
+- [x] Backend setup installs every dependency required to collect the complete test suite.
+- [x] Model requirements and validation are marked verified.
+- [x] Active handoff contains only current work and honest remaining deploy UAT.
+
+**Tests:** documentation review
+**Gate:** backend test collection
+
+---
+
+### T16: Add structured LLM explanation/action contract
+
+**What:** Request and validate separate explanation, action intent and recommended action fields from the OpenAI-compatible provider.
+**Where:** `backend/app/schemas.py`, `backend/app/llm.py`, `backend/tests/test_llm.py`
+**Depends on:** T15
+**Requirement:** DELAY-04, DELAY-05, DELAY-06
+
+**Done when:**
+
+- [ ] Provider request uses a strict JSON schema.
+- [ ] Empty, malformed and incomplete responses are rejected.
+- [ ] Prompt distinguishes model probability from historical context and does not duplicate the action inside the explanation.
+- [ ] Unit tests cover the contract and token telemetry remains intact.
+
+**Tests:** unit
+**Gate:** backend quick gate
+
+---
+
+### T17: Enforce deterministic action compatibility
+
+**What:** Use the LLM wording only when its closed action intent matches the deterministic policy; otherwise fall back for both fields.
+**Where:** `backend/app/explanation.py`, `backend/app/agent.py`, `backend/tests/test_explanation.py`, `backend/tests/test_agent.py`
+**Depends on:** T16
+**Requirement:** DELAY-05, DELAY-06
+
+**Done when:**
+
+- [ ] Action policy exposes one of `normal_flow`, `monitor`, `prioritize` or `human_review`.
+- [ ] Compatible structured LLM output supplies both visible fields.
+- [ ] Mismatch, empty content and provider failure use both deterministic fallback fields.
+- [ ] Legacy raw-text test clients cannot override the deterministic action.
+
+**Tests:** unit/integration
+**Gate:** backend full gate
+
+---
+
+### T18: Show session observability in the dashboard
+
+**What:** Aggregate classified count, average latency, fallback/guardrail count and LLM tokens from predictions already held in browser state.
+**Where:** `frontend/src/App.jsx`, `frontend/src/styles.css`
+**Depends on:** T17
+**Requirement:** DELAY-07, DELAY-08
+
+**Done when:**
+
+- [ ] Metrics update after classifications without a new backend endpoint or persistence.
+- [ ] Prediction details identify LLM model and token total when present.
+- [ ] Responsive build remains usable and the production build passes.
+
+**Tests:** build/smoke + manual UAT
+**Gate:** frontend build gate
+
 ```text
 Phase 1:
   T1 -> T2 -> T3
@@ -403,6 +484,9 @@ Phase 4:
   T10 -> T11 -> T14 -> T12
                 ^
   T13 ----------|
+
+Phase 5:
+  T12 -> T15 -> T16 -> T17 -> T18
 ```
 
 **Parallelism constraint:** No task is marked `[P]` yet because backend test isolation is not established. After T1 defines isolated test fixtures, T7 can potentially run in parallel with T5/T6.

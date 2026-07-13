@@ -17,14 +17,15 @@
 **Core:**
 
 - Frontend: React 19 + Vite 6, ja presente em `frontend`.
-- Backend/API: Python a definir durante implementacao, recomendado FastAPI pelo encaixe com API REST e validacao de schema.
-- Agent layer: agente com LLM para resposta/acao, usando ferramenta deterministica de consulta estatistica ao dataset e fallback templateado.
+- Backend/API: Python 3.12, FastAPI, Pydantic e Uvicorn.
+- Agent layer: Gemini 2.5 Flash para linguagem, modelo calibrado para o risco e ferramenta historica para evidencias/fallback.
 - Data: CSVs do Olist em `dataset`.
 
-**Key dependencies planned:**
+**Key dependencies:**
 
-- Python stdlib para baseline de leitura/agregacao se o tempo for curto.
-- FastAPI e Pydantic para API e validacao, se dependencias puderem ser adicionadas.
+- scikit-learn/joblib para treino e serving do classificador calibrado.
+- MLflow opcional para rastreamento de experimentos e registro do modelo.
+- FastAPI e Pydantic para API e validacao.
 - React/Vite para produto.
 - Docker/Docker Compose para reproducibilidade.
 
@@ -42,7 +43,7 @@
 
 **Explicitly out of scope:**
 
-- Treinar um modelo de ML separado no MVP, como LightGBM ou rede neural.
+- Treino online, AutoML, deep learning e busca extensa de hiperparametros.
 - Usar reviews para prever risco, pois reviews acontecem depois da experiencia do pedido.
 - Otimizacao operacional automatica real, como disparar mensagens ou alterar rota em sistemas externos.
 - Autenticacao multiusuario.
@@ -51,6 +52,6 @@
 ## Constraints
 
 - Timeline: entrega em 13/07/2026.
-- Technical: dataset local em CSV; sem backend implementado ainda.
+- Technical: dataset local em CSV; deploy gratuito limitado a 512 MB e sujeito a cold start.
 - Evaluation: trabalho precisa demonstrar agente, API, produto, guardrails, fallback, latencia/custo e monitoramento.
 - Data/license: dataset Olist Brazilian E-Commerce (Kaggle), licenciado CC BY-NC-SA 4.0. Uso academico/nao-comercial e compativel; origem e licenca devem ser declaradas no relatorio.
