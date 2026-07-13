@@ -113,7 +113,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T3: Model training script
+### T3: Model training script ✅ DONE
 
 **What**: Build the calibrated pipeline and a `train()` that persists `model.joblib`, with optional MLflow model registration.
 **Where**: `backend/app/train_model.py` (new) + `backend/tests/test_train_model.py`
@@ -125,12 +125,12 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] `build_pipeline()` returns `OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1, encoded_missing_value=-2)` on categoricals → `CalibratedClassifierCV(HistGradientBoostingClassifier(categorical_features=…), method="isotonic", cv=5)`.
-- [ ] `train(prepared_path, model_path)` fits on features/target and `joblib.dump`s the pipeline.
-- [ ] Runnable as `python -m app.train_model`.
-- [ ] Test: trains on a small in-memory fixture → dumped model loads and `predict_proba` returns values ∈ [0,1].
-- [ ] Test: MLflow registration is skipped cleanly when `mlflow_tracking.enabled()` is false.
-- [ ] Gate passes; test count increases.
+- [x] `build_pipeline()` returns `OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1, encoded_missing_value=-2)` on categoricals → `CalibratedClassifierCV(HistGradientBoostingClassifier(categorical_features=…), method="isotonic", cv=5)`.
+- [x] `train(prepared_path, model_path)` fits on features/target and `joblib.dump`s the pipeline.
+- [x] Runnable as `python -m app.train_model`.
+- [x] Test: trains on a small in-memory fixture → dumped model loads and `predict_proba` returns values ∈ [0,1].
+- [x] Test: MLflow registration is skipped cleanly when `mlflow_tracking.enabled()` is false.
+- [x] Gate passes; test count increases. 73 pass.
 
 **Tests**: unit · **Gate**: quick
 
