@@ -9,6 +9,7 @@
 
 ### AD-001: MVP sem modelo supervisionado (2026-07-09)
 
+**Status:** superseded by AD-008 (2026-07-13) — valido apenas para o MVP.
 **Decision:** O MVP usara um agente com ferramenta de consulta estatistica ao historico Olist, sem treinar um modelo de ML separado.
 **Reason:** O enunciado valoriza agente, API, produto, guardrails, fallback, monitoramento e deploy; as specs consolidam essa direcao.
 **Trade-off:** A acuracia pode ser menor que a de um modelo treinado, especialmente em combinacoes raras.
@@ -55,6 +56,14 @@
 **Reason:** Um unico provedor reduz configuracao e risco operacional; o Render suporta site estatico, FastAPI/Docker, secrets, health check e URLs HTTPS.
 **Trade-off:** O backend gratuito dorme apos inatividade, tem filesystem efemero, 512 MB/0,1 CPU e pode demorar cerca de um minuto para acordar.
 **Impact:** Implementar `VITE_API_BASE`, CORS restrito, build-time data prep, uso de `$PORT`, estado de aquecimento/retry e `render.yaml`. Nao usar UptimeRobot para impedir permanentemente o spin-down; detalhes em `DEPLOYMENT.md`.
+
+### AD-008: Modelo supervisionado calibrado como evolucao pos-MVP (2026-07-13)
+
+**Status:** active — supersedes AD-001.
+**Decision:** Apos o MVP entregue, adicionar um classificador calibrado (sklearn `HistGradientBoostingClassifier` + `CalibratedClassifierCV`) como fonte do numero de risco, treinado apenas com features reconstrutiveis do `OrderInput` (exclui `sellers_count`). O `HistoricalRiskTool` permanece como fallback e como fonte das evidencias/fatores; a camada LLM (AD-005/AD-006) nao muda. Rastreamento de experimentos e registro do modelo via MLflow, estritamente opcional. Trabalho na branch `feat/modelo-ml-mlflow`.
+**Reason:** MVP ja entregue; a rubrica premia a iteracao baseline→modelo, exploracao de modelos e proximos passos. A discriminacao fraca do baseline (recall de alarme alto 5.5%) e a fraqueza honesta que o modelo enderaca. MLflow realiza a competencia de rastreamento de experimentos da disciplina.
+**Trade-off:** Adiciona dependencias (`scikit-learn`, `mlflow`) isoladas em `requirements-ml.txt` e um servico opcional; risco de perder calibracao/interpretabilidade — mitigado por calibracao isotonica, reuso dos limiares existentes e degradacao graciosa.
+**Impact:** Nova feature `.specs/features/modelo-ml-mlflow/`; `ModelRiskTool` atras do mesmo seam `estimate_delay_risk`; `evaluate.py --scorer model`; artefato JSON de comparacao baseline-vs-modelo + quebra por estado para a secao de etica.
 
 ---
 
