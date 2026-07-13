@@ -268,7 +268,7 @@ T4,T7 → T9 → T10
 
 ---
 
-### T10: Document train/eval/MLflow usage + deployment modes
+### T10: Document train/eval/MLflow usage + deployment modes ✅ DONE
 
 **What**: Update backend README with train/eval/MLflow commands and the model-enabled vs fallback deployment modes (Render reality).
 **Where**: `backend/README.md` (modify)
@@ -280,8 +280,8 @@ T4,T7 → T9 → T10
 
 **Done when**:
 
-- [ ] Documented: `python -m app.train_model`, `evaluate --scorer model --json-out`, enabling MLflow, and the two deploy modes (with/without sklearn+model).
-- [ ] Reproducible retrain command documented (ML-07).
+- [x] Documented: `python -m app.train_model`, `evaluate --scorer model --json-out`, enabling MLflow, and the two deploy modes (with/without sklearn+model).
+- [x] Reproducible retrain command documented (ML-07).
 
 **Tests**: none (docs) · **Gate**: build
 
