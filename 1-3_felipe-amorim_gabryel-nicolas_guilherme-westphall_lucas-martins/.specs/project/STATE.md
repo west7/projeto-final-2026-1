@@ -46,14 +46,16 @@
 
 ## Active Blockers
 
-### B-001: Licenca oficial do dataset ainda precisa ser confirmada
-
-**Discovered:** 2026-07-09
-**Impact:** O relatorio exige origem e licenca claras.
-**Workaround:** Documentar como pendente e manter uso academico/local.
-**Resolution:** Confirmar na pagina oficial do dataset Olist no Kaggle antes da entrega.
+_None active._
 
 ## Resolved Blockers
+
+### B-001: Licenca oficial do dataset confirmada
+
+**Discovered:** 2026-07-09
+**Resolved:** 2026-07-12
+**Impact:** O relatorio exige origem e licenca claras.
+**Resolution:** Dataset Olist Brazilian E-Commerce (Kaggle) licenciado sob CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike 4.0 International). Uso academico/nao-comercial deste projeto e compativel; o relatorio (T12) deve creditar a fonte e declarar a licenca.
 
 ### B-002: Backend fundacional inexistente
 
@@ -139,7 +141,7 @@
 - T10 mobile UAT — passed at 320 px and landscape for table scrolling, form flow, loading/success, API error recovery and result readability. Physical-device numeric keyboard behavior was not tested; inputs use numeric `inputMode` hints.
 **Test state:** 64 passed, 0 failed (`cd backend && ./.venv/bin/pytest`); frontend production build passes; Docker smoke passed for backend health, Nginx proxy, frontend and Gemini prediction.
 **Next step:** Finish T12 report/demo docs (evaluation numbers from T7, cost/latency/fallback signals from T13/T8 telemetry).
-**Blockers:** none active for T12. B-001 (dataset license) still open for report.
+**Blockers:** none active. B-001 resolved — dataset licensed CC BY-NC-SA 4.0 (credit source + declare license in the T12 report).
 **Uncommitted files:** none expected after the reliability documentation commit.
 **Branch:** main.
 **Notes:** Executing on `main` (matches T1). One sub-agent worker died on a transient API error mid-T3; T3 finished inline. Verifier not yet run — fires after feature's final task (T12).

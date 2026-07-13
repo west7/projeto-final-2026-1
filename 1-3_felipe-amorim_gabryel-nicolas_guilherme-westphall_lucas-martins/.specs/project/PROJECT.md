@@ -53,4 +53,4 @@
 - Timeline: entrega em 13/07/2026.
 - Technical: dataset local em CSV; sem backend implementado ainda.
 - Evaluation: trabalho precisa demonstrar agente, API, produto, guardrails, fallback, latencia/custo e monitoramento.
-- Data/license: dataset Olist deve ter origem e licenca declaradas no relatorio; a licenca deve ser confirmada na pagina oficial do Kaggle antes da entrega.
+- Data/license: dataset Olist Brazilian E-Commerce (Kaggle), licenciado CC BY-NC-SA 4.0. Uso academico/nao-comercial e compativel; origem e licenca devem ser declaradas no relatorio.
