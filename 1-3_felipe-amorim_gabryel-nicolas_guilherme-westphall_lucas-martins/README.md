@@ -29,27 +29,13 @@
 
 ### Arquitetura
 
-```
-Olist CSV (dataset)
-        |
-   data_prep (offline, sem vazamento temporal)
-        |
-prepared_orders.jsonl  (96.470 pedidos entregues)
-        |
-HistoricalRiskTool  <-- fallback determinístico
-        |                (ou ModelRiskTool, pós-MVP)
-   DelayAgent  <-- LLM (explicação/ação)
-        |
-FastAPI  POST /predict-delay · GET /health
-        |
-React/Vite dashboard  --(proxy Nginx)-->  API
-```
+![Fluxo da requisição: Cliente → FastAPI /predict-delay → DelayAgent → ModelRiskTool ou HistoricalRiskTool → guardrail explain_risk → LLM (explicação PT-BR) → DelayPrediction](assets/architecture.png)
 
 O fluxo de uma predição: o operador envia/seleciona um pedido no painel → o frontend chama `POST /api/predict-delay` → a entrada passa por guardrails de validação (Pydantic) → o `DelayAgent` consulta a ferramenta de risco → o resultado passa por guardrails de saída → a LLM (ou o fallback determinístico) escreve a explicação e a ação recomendada → a resposta volta para o painel, junto com telemetria de latência, fallback e uso de tokens.
 
 **Exploração de abordagens (agent/model exploration):** a decisão inicial (AD-001) foi não treinar nenhum modelo supervisionado no MVP, e usar só uma ferramenta determinística de consulta a segmentos históricos - isso mantinha o foco do trabalho no ciclo agente → API → produto, guardrails e confiabilidade, em vez de otimização de modelo. Depois do MVP entregue, a equipe evoluiu essa decisão (AD-008): um classificador `HistGradientBoostingClassifier` calibrado (`CalibratedClassifierCV`, calibração isotônica) foi adicionado como fonte do número de risco, atrás do mesmo contrato `estimate_delay_risk`, com rastreamento opcional via MLflow. A ferramenta histórica continua ativa como fallback e como fonte dos fatores explicativos.
 
-**Deployment:** backend (FastAPI + Docker) e frontend (React/Vite, servido por Nginx) publicados no Render - o frontend como Static Site (sem spin-down) e o backend como Web Service Docker do plano gratuito. O dataset preparado (`prepared_orders.jsonl`) é gerado durante o build multi-stage da imagem, então a imagem final não carrega os CSVs brutos nem depende de disco persistente em runtime. Validação pública registrada em 13/07/2026: frontend HTTP 200 em 0,25s; `/health` em 4,96s; `POST /predict-delay` em 7,23s (latência interna de 6.880ms, a maior parte gasta na chamada ao Gemini — essa medição é anterior à otimização de latência descrita na seção 4, que reduziu a latência interna para ~1,1s); CORS restrito ao domínio do frontend.
+**Deployment:** backend (FastAPI + Docker) e frontend (React/Vite, servido por Nginx) publicados no Render - o frontend como Static Site (sem spin-down) e o backend como Web Service Docker do plano gratuito. O dataset preparado (`prepared_orders.jsonl`) é gerado durante o build multi-stage da imagem, então a imagem final não carrega os CSVs brutos nem depende de disco persistente em runtime. Validação pública registrada em 13/07/2026: frontend HTTP 200 em 0,25s; `/health` em 4,96s; `POST /predict-delay` em 7,23s (latência interna de 6.880ms, a maior parte gasta na chamada ao Gemini; essa medição é anterior à otimização de latência descrita na seção 4, que reduziu a latência interna para ~1,1s); CORS restrito ao domínio do frontend.
 
 **Restrição conhecida do plano gratuito do Render:** o backend "dorme" após 15 minutos de inatividade e pode levar cerca de um minuto para acordar. O frontend mostra um estado de "preparando agente" e reconsulta `/health` por até ~90 segundos antes de liberar a classificação, em vez de travar silenciosamente.
 
@@ -176,7 +162,7 @@ Quase toda a latência de uma predição está na chamada à LLM, não no núcle
 | Antes (raciocínio ligado) | ~4,7s | ~6,9s | 1.178 |
 | Depois (`reasoning_effort=none`) | ~0,9s | **~1,1s** | 307 |
 
-Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~870 tokens de raciocínio oculto foram eliminados — para uma tarefa de reescrita das evidências, zero raciocínio é adequado. A redução de ~5x na latência e de ~74% nos tokens também simplifica o custo: com o raciocínio desligado, `total ≈ prompt + conclusão`, então a estimativa de custo por chamada deixa de ser inflada por tokens de raciocínio. A latência interna (`latency_ms`) e a contagem de tokens são registradas na telemetria de cada requisição, o que permite acompanhar esses números em produção.
+Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~870 tokens de raciocínio oculto foram eliminados: para uma tarefa de reescrita das evidências, zero raciocínio é adequado. A redução de ~5x na latência e de ~74% nos tokens também simplifica o custo: com o raciocínio desligado, `total ≈ prompt + conclusão`, então a estimativa de custo por chamada deixa de ser inflada por tokens de raciocínio. A latência interna (`latency_ms`) e a contagem de tokens são registradas na telemetria de cada requisição, o que permite acompanhar esses números em produção.
 
 **UX:** o painel exibe o nível de risco como badge, a explicação e a ação recomendada lado a lado, e trata de forma visível os estados de fallback (LLM indisponível), erro de API e carregamento - inclusive o estado de "aquecendo" durante o cold start do plano gratuito do Render. Validação manual em mobile (320px, paisagem) cobriu rolagem de tabela, formulário, loading e recuperação de erro; o comportamento do teclado numérico em dispositivo físico não foi testado (os campos usam apenas a dica `inputMode="numeric"`).
 
@@ -186,7 +172,7 @@ Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~
 
 ## 5. Demonstração
 
-- Link do vídeo de demonstração: [Vídeo de demonstração de funcionamento](https://www.youtube.com/). FALTA LINK
+- Link do vídeo de demonstração: [Vídeo de demonstração de funcionamento](https://youtu.be/47ArI0O_ljg)
 
 ---
 
