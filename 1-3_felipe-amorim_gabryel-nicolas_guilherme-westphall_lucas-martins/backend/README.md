@@ -36,6 +36,54 @@ Environment variables:
 
 The generated `.jsonl` is ignored by git.
 
+## Model (ML) — train, evaluate, MLflow
+
+The ML stack lives in a separate `requirements-ml.txt` so the API image builds
+and serves without it. Install it only where you train/evaluate:
+
+```bash
+pip install -r requirements-ml.txt
+```
+
+Reproducible retrain — regenerates `data/model.joblib` (gitignored) from the
+prepared data with the same features/config every time:
+
+```bash
+python -m app.train_model
+```
+
+Offline evaluation (leave-one-out for the baseline, out-of-fold for the model),
+writing the full report as a committed JSON artifact:
+
+```bash
+python -m app.evaluate --scorer historical --json-out data/eval_historical.json
+python -m app.evaluate --scorer model      --json-out data/eval_model.json
+```
+
+`eval_historical.json` and `eval_model.json` are the committed baseline-vs-model
+comparison evidence (overall + per-band calibration + per-state + alarm TP/FP/FN).
+
+MLflow tracking is optional. When `MLFLOW_TRACKING_URI` is unset, train/eval run
+normally with all MLflow calls no-oped. To record runs, start the optional
+tracking server and point eval at it:
+
+```bash
+docker compose --profile mlflow up -d mlflow            # server on :5000
+MLFLOW_TRACKING_URI=http://localhost:5000 \
+  python -m app.evaluate --scorer model --json-out data/eval_model.json
+```
+
+## Deployment modes
+
+The API works in two modes with an identical contract:
+
+- **Model-enabled** — install `requirements-ml.txt` and set `MODEL_PATH` to a
+  trained `model.joblib`. Risk scores come from the calibrated model; evidence
+  factors still come from the historical tool.
+- **Fallback (default)** — no sklearn and/or no `MODEL_PATH` (or an
+  absent/corrupt model file). The API imports and serves using the historical
+  segment-average scorer. This is the mode the free-tier deploy runs in.
+
 ## LLM Configuration
 
 The agent is designed to use an LLM for the primary explanation/action text and

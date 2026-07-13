@@ -13,10 +13,12 @@ scan, turning an O(n^2) sweep into O(n) — required to evaluate ~96k orders.
 from __future__ import annotations
 
 import argparse
+import json
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
+from app import mlflow_tracking
 from app.data_prep import OrderFeature, load_prepared_features
 from app.risk_tool import DEFAULT_MIN_SEGMENT_SIZE, FALLBACK_HIERARCHY, _risk_level
 
@@ -136,6 +138,44 @@ def compute_report(
         raise ValueError("no prepared features to evaluate")
 
     index = build_segment_index(features)
+    predictions = [
+        predict(feature, index, min_segment_size, self_delayed=feature.delayed)
+        for feature in features
+    ]
+    return _report_from_predictions(features, predictions, min_segment_size)
+
+
+def compute_model_report(
+    features: list[OrderFeature],
+    min_segment_size: int = DEFAULT_MIN_SEGMENT_SIZE,
+    cv: int = 5,
+) -> EvalReport:
+    """Score every order with an out-of-fold model probability.
+
+    ``cross_val_predict`` refits per fold so no order is scored by a model that
+    saw it — the model-equivalent of the baseline's leave-one-out.
+    """
+    if not features:
+        raise ValueError("no prepared features to evaluate")
+
+    import pandas as pd
+    from sklearn.model_selection import cross_val_predict
+
+    from app.feature_encoding import FEATURE_COLUMNS, features_from_order_feature
+    from app.train_model import build_pipeline
+
+    X = pd.DataFrame([features_from_order_feature(f) for f in features], columns=FEATURE_COLUMNS)
+    y = [f.delayed for f in features]
+    proba = cross_val_predict(build_pipeline(cv=cv), X, y, cv=cv, method="predict_proba")[:, 1]
+    predictions = [Prediction(_risk_level(p), fallback_used=False, sample_size=0) for p in proba]
+    return _report_from_predictions(features, predictions, min_segment_size)
+
+
+def _report_from_predictions(
+    features: list[OrderFeature],
+    predictions: list[Prediction],
+    min_segment_size: int,
+) -> EvalReport:
     bands = {band: BandStats(0, 0) for band in _BAND_ORDER}
     # "high" = flag only the top band; "medium+high" = flag anything above low.
     alarms = {"high": AlarmStats(0, 0, 0), "medium+high": AlarmStats(0, 0, 0)}
@@ -144,8 +184,7 @@ def compute_report(
     fallback_count = 0
     delayed_total = 0
 
-    for feature in features:
-        prediction = predict(feature, index, min_segment_size, self_delayed=feature.delayed)
+    for feature, prediction in zip(features, predictions):
         band = bands[prediction.risk_level]
         band.n += 1
         if feature.delayed:
@@ -227,10 +266,67 @@ def render_report(report: EvalReport, top_states: int = 15) -> str:
     return "\n".join(lines)
 
 
+def bands_ordered(report: EvalReport) -> bool:
+    """True when observed delay rate is monotone high > medium > low (calibration held)."""
+    return (
+        report.bands["high"].observed_rate
+        > report.bands["medium"].observed_rate
+        > report.bands["low"].observed_rate
+    )
+
+
+def report_to_dict(report: EvalReport) -> dict:
+    return {
+        "n": report.n,
+        "base_rate": report.base_rate,
+        "fallback_rate": report.fallback_rate,
+        "min_segment_size": report.min_segment_size,
+        "bands_ordered": bands_ordered(report),
+        "bands": {
+            band: {"n": s.n, "delayed": s.delayed, "observed_rate": s.observed_rate}
+            for band, s in report.bands.items()
+        },
+        "alarms": {
+            name: {"tp": a.tp, "fp": a.fp, "fn": a.fn, "recall": a.recall, "precision": a.precision}
+            for name, a in report.alarms.items()
+        },
+        "by_state": [
+            {
+                "state": state,
+                "n": s.n,
+                "delayed": s.delayed,
+                "flagged_delayed": s.flagged_delayed,
+                "fallback": s.fallback,
+                "recall": s.recall,
+                "fallback_rate": s.fallback_rate,
+            }
+            for state, s in report.by_state
+        ],
+    }
+
+
+def run_evaluation(
+    features: list[OrderFeature],
+    scorer: str = "historical",
+    min_segment_size: int = DEFAULT_MIN_SEGMENT_SIZE,
+    cv: int = 5,
+) -> EvalReport:
+    if scorer == "model":
+        report = compute_model_report(features, min_segment_size=min_segment_size, cv=cv)
+    else:
+        report = compute_report(features, min_segment_size=min_segment_size)
+    mlflow_tracking.log_eval_run(report, {"scorer": scorer, "min_segment_size": min_segment_size})
+    return report
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate the delay-risk baseline over prepared Olist orders.")
     parser.add_argument("--path", type=Path, default=_DEFAULT_PREPARED_PATH,
                         help="prepared_orders.jsonl produced by prepare_data.py")
+    parser.add_argument("--scorer", choices=("historical", "model"), default="historical")
+    # ponytail: accepted for interface parity; the model scorer refits out-of-fold, so it never loads a saved artifact.
+    parser.add_argument("--model-path", type=Path, default=None)
+    parser.add_argument("--json-out", type=Path, default=None, help="write the full EvalReport as JSON")
     parser.add_argument("--min-segment-size", type=int, default=DEFAULT_MIN_SEGMENT_SIZE)
     parser.add_argument("--top-states", type=int, default=15)
     args = parser.parse_args()
@@ -239,8 +335,12 @@ def main() -> None:
         raise SystemExit(f"Prepared features not found: {args.path}. Run app/prepare_data.py first.")
 
     features = load_prepared_features(args.path)
-    report = compute_report(features, min_segment_size=args.min_segment_size)
+    report = run_evaluation(features, scorer=args.scorer, min_segment_size=args.min_segment_size)
     print(render_report(report, top_states=args.top_states))
+    if args.json_out:
+        args.json_out.parent.mkdir(parents=True, exist_ok=True)
+        args.json_out.write_text(json.dumps(report_to_dict(report), indent=2))
+        print(f"\nwrote {args.json_out}")
 
 
 if __name__ == "__main__":

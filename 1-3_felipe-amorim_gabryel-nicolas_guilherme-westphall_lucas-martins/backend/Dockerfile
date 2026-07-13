@@ -9,21 +9,26 @@ WORKDIR /app
 COPY backend ./backend
 COPY dataset ./dataset
 
-RUN mkdir -p /app/backend/data && cd /app/backend && python -m app.prepare_data
+RUN pip install --no-cache-dir -r backend/requirements-ml.txt \
+ && mkdir -p /app/backend/data && cd /app/backend \
+ && python -m app.prepare_data \
+ && python -m app.train_model
 
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PREPARED_FEATURES_PATH=/app/backend/data/prepared_orders.jsonl
+    PREPARED_FEATURES_PATH=/app/backend/data/prepared_orders.jsonl \
+    MODEL_PATH=/app/backend/data/model.joblib
 
 WORKDIR /app/backend
 
-COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY backend/requirements.txt backend/requirements-ml.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-ml.txt
 
 COPY backend ./
 COPY --from=data-builder /app/backend/data/prepared_orders.jsonl ./data/prepared_orders.jsonl
+COPY --from=data-builder /app/backend/data/model.joblib ./data/model.joblib
 
 EXPOSE 8000
 

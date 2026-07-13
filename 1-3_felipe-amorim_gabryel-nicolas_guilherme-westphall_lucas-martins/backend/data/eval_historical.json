@@ -1,0 +1,285 @@
+{
+  "n": 96470,
+  "base_rate": 0.08112366538820359,
+  "fallback_rate": 0.2138384990152379,
+  "min_segment_size": 30,
+  "bands_ordered": true,
+  "bands": {
+    "high": {
+      "n": 2103,
+      "delayed": 427,
+      "observed_rate": 0.20304327151688065
+    },
+    "medium": {
+      "n": 23253,
+      "delayed": 3086,
+      "observed_rate": 0.13271405840106654
+    },
+    "low": {
+      "n": 71114,
+      "delayed": 4313,
+      "observed_rate": 0.06064909863036814
+    }
+  },
+  "alarms": {
+    "high": {
+      "tp": 427,
+      "fp": 1676,
+      "fn": 7399,
+      "recall": 0.05456171735241502,
+      "precision": 0.20304327151688065
+    },
+    "medium+high": {
+      "tp": 3513,
+      "fp": 21843,
+      "fn": 4313,
+      "recall": 0.44888832098134424,
+      "precision": 0.1385470894462849
+    }
+  },
+  "by_state": [
+    {
+      "state": "SP",
+      "n": 40494,
+      "delayed": 2387,
+      "flagged_delayed": 40,
+      "fallback": 2527,
+      "recall": 0.016757436112274822,
+      "fallback_rate": 0.06240430681088557
+    },
+    {
+      "state": "RJ",
+      "n": 12350,
+      "delayed": 1664,
+      "flagged_delayed": 158,
+      "fallback": 2160,
+      "recall": 0.09495192307692307,
+      "fallback_rate": 0.1748987854251012
+    },
+    {
+      "state": "MG",
+      "n": 11354,
+      "delayed": 637,
+      "flagged_delayed": 0,
+      "fallback": 1860,
+      "recall": 0.0,
+      "fallback_rate": 0.16381891844283952
+    },
+    {
+      "state": "RS",
+      "n": 5344,
+      "delayed": 382,
+      "flagged_delayed": 0,
+      "fallback": 1441,
+      "recall": 0.0,
+      "fallback_rate": 0.2696482035928144
+    },
+    {
+      "state": "PR",
+      "n": 4923,
+      "delayed": 246,
+      "flagged_delayed": 0,
+      "fallback": 1561,
+      "recall": 0.0,
+      "fallback_rate": 0.317083079423116
+    },
+    {
+      "state": "SC",
+      "n": 3546,
+      "delayed": 346,
+      "flagged_delayed": 0,
+      "fallback": 1224,
+      "recall": 0.0,
+      "fallback_rate": 0.34517766497461927
+    },
+    {
+      "state": "BA",
+      "n": 3256,
+      "delayed": 457,
+      "flagged_delayed": 0,
+      "fallback": 1115,
+      "recall": 0.0,
+      "fallback_rate": 0.34244471744471744
+    },
+    {
+      "state": "DF",
+      "n": 2080,
+      "delayed": 147,
+      "flagged_delayed": 0,
+      "fallback": 966,
+      "recall": 0.0,
+      "fallback_rate": 0.46442307692307694
+    },
+    {
+      "state": "ES",
+      "n": 1995,
+      "delayed": 244,
+      "flagged_delayed": 14,
+      "fallback": 715,
+      "recall": 0.05737704918032787,
+      "fallback_rate": 0.3583959899749373
+    },
+    {
+      "state": "GO",
+      "n": 1957,
+      "delayed": 160,
+      "flagged_delayed": 0,
+      "fallback": 792,
+      "recall": 0.0,
+      "fallback_rate": 0.4047010730710271
+    },
+    {
+      "state": "PE",
+      "n": 1593,
+      "delayed": 172,
+      "flagged_delayed": 0,
+      "fallback": 688,
+      "recall": 0.0,
+      "fallback_rate": 0.43188951663527936
+    },
+    {
+      "state": "CE",
+      "n": 1279,
+      "delayed": 196,
+      "flagged_delayed": 36,
+      "fallback": 541,
+      "recall": 0.1836734693877551,
+      "fallback_rate": 0.42298670836591085
+    },
+    {
+      "state": "PA",
+      "n": 946,
+      "delayed": 117,
+      "flagged_delayed": 0,
+      "fallback": 536,
+      "recall": 0.0,
+      "fallback_rate": 0.5665961945031712
+    },
+    {
+      "state": "MT",
+      "n": 886,
+      "delayed": 60,
+      "flagged_delayed": 0,
+      "fallback": 524,
+      "recall": 0.0,
+      "fallback_rate": 0.5914221218961625
+    },
+    {
+      "state": "MA",
+      "n": 717,
+      "delayed": 141,
+      "flagged_delayed": 93,
+      "fallback": 543,
+      "recall": 0.6595744680851063,
+      "fallback_rate": 0.7573221757322176
+    },
+    {
+      "state": "MS",
+      "n": 701,
+      "delayed": 81,
+      "flagged_delayed": 0,
+      "fallback": 582,
+      "recall": 0.0,
+      "fallback_rate": 0.8302425106990015
+    },
+    {
+      "state": "PB",
+      "n": 517,
+      "delayed": 57,
+      "flagged_delayed": 0,
+      "fallback": 435,
+      "recall": 0.0,
+      "fallback_rate": 0.8413926499032882
+    },
+    {
+      "state": "PI",
+      "n": 476,
+      "delayed": 76,
+      "flagged_delayed": 0,
+      "fallback": 476,
+      "recall": 0.0,
+      "fallback_rate": 1.0
+    },
+    {
+      "state": "RN",
+      "n": 474,
+      "delayed": 51,
+      "flagged_delayed": 0,
+      "fallback": 397,
+      "recall": 0.0,
+      "fallback_rate": 0.8375527426160337
+    },
+    {
+      "state": "AL",
+      "n": 397,
+      "delayed": 95,
+      "flagged_delayed": 85,
+      "fallback": 361,
+      "recall": 0.8947368421052632,
+      "fallback_rate": 0.9093198992443325
+    },
+    {
+      "state": "SE",
+      "n": 335,
+      "delayed": 51,
+      "flagged_delayed": 0,
+      "fallback": 335,
+      "recall": 0.0,
+      "fallback_rate": 1.0
+    },
+    {
+      "state": "TO",
+      "n": 274,
+      "delayed": 35,
+      "flagged_delayed": 1,
+      "fallback": 274,
+      "recall": 0.02857142857142857,
+      "fallback_rate": 1.0
+    },
+    {
+      "state": "RO",
+      "n": 243,
+      "delayed": 7,
+      "flagged_delayed": 0,
+      "fallback": 243,
+      "recall": 0.0,
+      "fallback_rate": 1.0
+    },
+    {
+      "state": "AM",
+      "n": 145,
+      "delayed": 6,
+      "flagged_delayed": 0,
+      "fallback": 145,
+      "recall": 0.0,
+      "fallback_rate": 1.0
+    },
+    {
+      "state": "AC",
+      "n": 80,
+      "delayed": 3,
+      "flagged_delayed": 0,
+      "fallback": 80,
+      "recall": 0.0,
+      "fallback_rate": 1.0
+    },
+    {
+      "state": "AP",
+      "n": 67,
+      "delayed": 3,
+      "flagged_delayed": 0,
+      "fallback": 67,
+      "recall": 0.0,
+      "fallback_rate": 1.0
+    },
+    {
+      "state": "RR",
+      "n": 41,
+      "delayed": 5,
+      "flagged_delayed": 0,
+      "fallback": 41,
+      "recall": 0.0,
+      "fallback_rate": 1.0
+    }
+  ]
+}

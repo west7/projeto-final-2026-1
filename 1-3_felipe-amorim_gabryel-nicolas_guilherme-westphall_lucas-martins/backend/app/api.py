@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from app.agent import DelayAgent
 from app.health import health
 from app.llm import build_llm_client_from_env
+from app.model_risk_tool import ModelRiskTool
 from app.risk_tool import HistoricalRiskTool
 from app.schemas import DelayPrediction, OrderInput, format_validation_error
 
@@ -139,8 +140,12 @@ def _build_default_agent() -> tuple[DelayAgent | None, str | None]:
     if not prepared_path.is_file():
         return None, "prepared_data_not_found"
 
+    model_path = os.getenv("MODEL_PATH")
     try:
-        risk_tool = HistoricalRiskTool.from_path(prepared_path)
+        if model_path:
+            risk_tool = ModelRiskTool.from_paths(prepared_path, model_path)
+        else:
+            risk_tool = HistoricalRiskTool.from_path(prepared_path)
         llm_client = build_llm_client_from_env()
     except (OSError, ValueError):
         logger.exception("agent_startup_failed", extra={"event_type": "startup_error", "latency_ms": 0})
