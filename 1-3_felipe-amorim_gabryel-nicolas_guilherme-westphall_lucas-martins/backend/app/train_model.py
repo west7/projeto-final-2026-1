@@ -13,19 +13,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import joblib
-import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OrdinalEncoder
 
+from app._model_pipeline import records_to_frame
 from app.data_prep import load_prepared_features
-from app.feature_encoding import (
-    CATEGORICAL_COLUMNS,
-    FEATURE_COLUMNS,
-    features_from_order_feature,
-)
+from app.feature_encoding import CATEGORICAL_COLUMNS, features_from_order_feature
 
 _DEFAULT_PREPARED_PATH = Path(__file__).resolve().parents[1] / "data" / "prepared_orders.jsonl"
 _DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "data" / "model.joblib"
@@ -37,11 +33,6 @@ class TrainSummary:
     delayed_count: int
     model_path: Path
     mlflow_logged: bool
-
-
-def _records_to_frame(records) -> pd.DataFrame:
-    # Accepts a list of feature dicts (serving) or a DataFrame slice (cross-val); both reindex to FEATURE_COLUMNS.
-    return pd.DataFrame(records, columns=FEATURE_COLUMNS)
 
 
 def build_pipeline(cv: int = 5) -> Pipeline:
@@ -64,7 +55,7 @@ def build_pipeline(cv: int = 5) -> Pipeline:
         cv=cv,
     )
     return Pipeline([
-        ("frame", FunctionTransformer(_records_to_frame)),
+        ("frame", FunctionTransformer(records_to_frame)),
         ("encode", encoder),
         ("clf", classifier),
     ])
