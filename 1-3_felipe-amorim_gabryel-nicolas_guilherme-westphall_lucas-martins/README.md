@@ -49,7 +49,7 @@ O fluxo de uma predição: o operador envia/seleciona um pedido no painel → o 
 
 **Exploração de abordagens (agent/model exploration):** a decisão inicial (AD-001) foi não treinar nenhum modelo supervisionado no MVP, e usar só uma ferramenta determinística de consulta a segmentos históricos - isso mantinha o foco do trabalho no ciclo agente → API → produto, guardrails e confiabilidade, em vez de otimização de modelo. Depois do MVP entregue, a equipe evoluiu essa decisão (AD-008): um classificador `HistGradientBoostingClassifier` calibrado (`CalibratedClassifierCV`, calibração isotônica) foi adicionado como fonte do número de risco, atrás do mesmo contrato `estimate_delay_risk`, com rastreamento opcional via MLflow. A ferramenta histórica continua ativa como fallback e como fonte dos fatores explicativos.
 
-**Deployment:** backend (FastAPI + Docker) e frontend (React/Vite, servido por Nginx) publicados no Render - o frontend como Static Site (sem spin-down) e o backend como Web Service Docker do plano gratuito. O dataset preparado (`prepared_orders.jsonl`) é gerado durante o build multi-stage da imagem, então a imagem final não carrega os CSVs brutos nem depende de disco persistente em runtime. Validação pública registrada em 13/07/2026: frontend HTTP 200 em 0,25s; `/health` em 4,96s; `POST /predict-delay` em 7,23s (latência interna de 6.880ms, a maior parte gasta na chamada ao Gemini); CORS restrito ao domínio do frontend.
+**Deployment:** backend (FastAPI + Docker) e frontend (React/Vite, servido por Nginx) publicados no Render - o frontend como Static Site (sem spin-down) e o backend como Web Service Docker do plano gratuito. O dataset preparado (`prepared_orders.jsonl`) é gerado durante o build multi-stage da imagem, então a imagem final não carrega os CSVs brutos nem depende de disco persistente em runtime. Validação pública registrada em 13/07/2026: frontend HTTP 200 em 0,25s; `/health` em 4,96s; `POST /predict-delay` em 7,23s (latência interna de 6.880ms, a maior parte gasta na chamada ao Gemini — essa medição é anterior à otimização de latência descrita na seção 4, que reduziu a latência interna para ~1,1s); CORS restrito ao domínio do frontend.
 
 **Restrição conhecida do plano gratuito do Render:** o backend "dorme" após 15 minutos de inatividade e pode levar cerca de um minuto para acordar. O frontend mostra um estado de "preparando agente" e reconsulta `/health` por até ~90 segundos antes de liberar a classificação, em vez de travar silenciosamente.
 
@@ -111,7 +111,7 @@ Sem chave de LLM configurada, o agente continua funcionando normalmente com a ex
 **Rodar os testes e o build (gates de qualidade):**
 
 ```bash
-# backend: 89 testes automatizados (pytest)
+# backend: 92 testes automatizados (pytest)
 cd backend && ./.venv/bin/python -m pytest -q
 
 # frontend: build de produção
@@ -167,9 +167,20 @@ O modelo calibrado (`HistGradientBoostingClassifier` + `CalibratedClassifierCV`)
 
 **Por estado (baseline → modelo), recall de detecção de atraso:** SP 1,7% → 19,4%; RJ 9,5% → 63,9%; MG 0% → 26,2%; DF 0% → 26,5%; SC 0% → 35,8%; BA 0% → 51,6%. O baseline histórico praticamente não detectava atraso em vários estados (recall 0%) por falta de amostra suficiente nesses recortes; o modelo calibrado reduz essa disparidade de forma relevante, embora ainda existam diferenças entre estados.
 
+### Latência e custo por chamada (antes → depois)
+
+Quase toda a latência de uma predição está na chamada à LLM, não no núcleo determinístico: o cálculo de risco (modelo + consulta histórica + guardrails) leva **~175ms**. O Gemini 2.5 Flash vinha com o modo de raciocínio ("thinking") ligado por padrão, gastando ~870 tokens de raciocínio ocultos por chamada antes de escrever uma explicação curta. Desativar o raciocínio (`reasoning_effort=none`, configurável por `LLM_REASONING_EFFORT`) reduziu drasticamente a latência **sem alterar a resposta**:
+
+| | Chamada à LLM | Latência interna (ponta a ponta) | Tokens por chamada |
+|---|---|---|---|
+| Antes (raciocínio ligado) | ~4,7s | ~6,9s | 1.178 |
+| Depois (`reasoning_effort=none`) | ~0,9s | **~1,1s** | 307 |
+
+Os tokens de conclusão (a resposta em si) não mudaram (82 tokens); apenas os ~870 tokens de raciocínio oculto foram eliminados — para uma tarefa de reescrita das evidências, zero raciocínio é adequado. A redução de ~5x na latência e de ~74% nos tokens também simplifica o custo: com o raciocínio desligado, `total ≈ prompt + conclusão`, então a estimativa de custo por chamada deixa de ser inflada por tokens de raciocínio. A latência interna (`latency_ms`) e a contagem de tokens são registradas na telemetria de cada requisição, o que permite acompanhar esses números em produção.
+
 **UX:** o painel exibe o nível de risco como badge, a explicação e a ação recomendada lado a lado, e trata de forma visível os estados de fallback (LLM indisponível), erro de API e carregamento - inclusive o estado de "aquecendo" durante o cold start do plano gratuito do Render. Validação manual em mobile (320px, paisagem) cobriu rolagem de tabela, formulário, loading e recuperação de erro; o comportamento do teclado numérico em dispositivo físico não foi testado (os campos usam apenas a dica `inputMode="numeric"`).
 
-**Testes automatizados:** 89 testes de backend (`pytest`), 0 falhas, cobrindo schemas/guardrails de entrada, ferramenta de risco, explicação/fallback, agente, API, cliente LLM, preparo de dados, encoding de features, treino, avaliação e MLflow. O frontend tem gate de build (`npm run build`), sem testes automatizados de componente.
+**Testes automatizados:** 92 testes de backend (`pytest`), 0 falhas, cobrindo schemas/guardrails de entrada, ferramenta de risco, explicação/fallback, agente, API, cliente LLM, preparo de dados, encoding de features, treino, avaliação e MLflow. O frontend tem gate de build (`npm run build`), sem testes automatizados de componente.
 
 ---
 
