@@ -1,69 +1,58 @@
 # Project Structure
 
-**Analyzed:** 2026-07-12
+**Analyzed:** 2026-07-13
 
 ```text
 .
 ├── README.md
 ├── docker-compose.yml
-├── .dockerignore
-├── dataset/
-│   ├── olist_customers_dataset.csv
-│   ├── olist_geolocation_dataset.csv
-│   ├── olist_order_items_dataset.csv
-│   ├── olist_order_payments_dataset.csv
-│   ├── olist_order_reviews_dataset.csv
-│   ├── olist_orders_dataset.csv
-│   ├── olist_products_dataset.csv
-│   ├── olist_sellers_dataset.csv
-│   └── product_category_name_translation.csv
+├── render.yaml
+├── assets/                     # report/dashboard/MLflow images
+├── dataset/                    # raw Olist CSV files
 ├── backend/
+│   ├── app/
+│   │   ├── api.py              # FastAPI endpoints and telemetry
+│   │   ├── agent.py            # prediction orchestration
+│   │   ├── risk_tool.py        # historical scorer and fallback hierarchy
+│   │   ├── model_risk_tool.py  # calibrated scorer adapter
+│   │   ├── llm.py              # structured OpenAI-compatible client
+│   │   ├── data_prep.py        # order-level feature preparation
+│   │   ├── train_model.py      # calibrated model training
+│   │   └── evaluate.py         # offline baseline/model evaluation
+│   ├── data/                    # committed evaluation JSON; generated model/data ignored
+│   ├── tests/                   # 101 pytest cases
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── pyproject.toml
-│   ├── app/
-│   │   ├── api.py            # FastAPI app: /health, /predict-delay
-│   │   ├── agent.py          # DelayAgent orchestration
-│   │   ├── risk_tool.py      # HistoricalRiskTool (segment fallback hierarchy)
-│   │   ├── explanation.py    # deterministic explanation + action policy
-│   │   ├── llm.py            # OpenAI-compatible LLM client
-│   │   ├── schemas.py        # Pydantic models + input guardrails
-│   │   ├── data_prep.py      # build/load prepared order features
-│   │   ├── prepare_data.py   # startup artifact builder
-│   │   ├── evaluate.py       # offline baseline evaluation (T7)
-│   │   └── health.py
-│   └── tests/                # pytest suite (61 tests)
+│   └── requirements-ml.txt
 ├── frontend/
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── vite.config.js
-│   ├── index.html
+│   ├── src/                     # React dashboard, API client and CSS
 │   ├── Dockerfile
 │   ├── nginx.conf
-│   └── src/
-│       ├── App.jsx
-│       ├── api.js
-│       ├── main.jsx
-│       └── styles.css
+│   └── package.json
 └── .specs/
-    ├── project/
-    ├── codebase/
-    └── features/
+    ├── project/                 # vision, roadmap and persistent state
+    ├── codebase/                # current brownfield map
+    └── features/                # requirements, design and task traceability
 ```
 
 ## Ownership Boundaries
 
-- Course/project brief: repository root `readme.md` and `trilhas.md`, outside this delivery folder.
-- Project-specific planning: `README.md` and `.specs`.
-- Raw data: `dataset`. Treat as source input; do not edit manually.
-- Product UI: `frontend`.
+- `dataset/` is immutable source data.
+- `backend/app/` contains production Python code; `backend/tests/` mirrors it.
+- `frontend/src/` contains browser behavior and presentation.
+- `assets/` and `backend/data/eval_*.json` are committed report evidence.
+- `.specs/` records project decisions and implementation traceability.
+- Root `readme.md` and `trilhas.md`, outside this delivery directory, contain the course brief.
 
-## Generated / Runtime (not in git)
+## Generated or Local-Only Files
 
-- `backend/data/prepared_orders.jsonl`: derived feature artifact built at startup from `dataset/`; persisted in a Docker volume.
-- `backend/.venv`: local virtualenv for the backend test gate.
-- `backend/.env`: local LLM configuration (gitignored).
+- `backend/data/prepared_orders.jsonl` and `backend/data/model.joblib` are generated, ignored by Git and embedded into the production image at build time.
+- `backend/.venv`, `backend/.env`, pytest caches, frontend `node_modules` and `dist` are ignored.
+- Local MLflow run and artifact directories are ignored; the Compose profile persists its server state in `mlflow-data`.
 
-## Expected Additions
+## Deployment Files
 
-- Report file(s) inside this project root (T12).
+- `docker-compose.yml`: local backend/frontend plus optional MLflow profile.
+- `backend/Dockerfile`: multi-stage data preparation, training and API image.
+- `frontend/Dockerfile` and `nginx.conf`: containerized local frontend.
+- `render.yaml`: production API Web Service and frontend Static Site definitions.

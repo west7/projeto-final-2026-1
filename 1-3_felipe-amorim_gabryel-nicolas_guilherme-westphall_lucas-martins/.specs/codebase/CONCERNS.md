@@ -1,55 +1,62 @@
 # Concerns
 
-**Analyzed:** 2026-07-09
+**Analyzed:** 2026-07-13
 
-## Data Concerns
+## Active Concerns
 
-### C-001: Temporal leakage
+### C-001: Regional performance remains uneven
 
-Fields like `order_delivered_customer_date`, reviews and final status can leak future information.
+The calibrated model improves high-risk recall over the historical baseline, but committed per-state evaluation still varies materially by region.
 
-**Mitigation:** Treat delivery date only as target; exclude reviews from MVP; avoid `order_status` as feature unless representing a runtime status captured at prediction time.
+**Evidence:** `backend/data/eval_model.json` and `assets/eval-by-state.png`.
 
-### C-002: Sparse historical groups
+**Mitigation:** Keep per-state evaluation visible, expose confidence/evidence to operators and avoid fully automated adverse decisions.
 
-Highly specific combinations such as seller-state + customer-state + category may have too few examples.
+### C-002: No automated frontend or end-to-end tests
 
-**Mitigation:** Use fallback hierarchy and expose sample size/confidence.
+The frontend has a production build gate but no component assertions or automated browser flow.
 
-### C-003: Class imbalance
+**Evidence:** `frontend/package.json` defines only dev/build/preview scripts; `.specs/codebase/TESTING.md` records zero frontend tests.
 
-Delivered orders inspected locally show about 8.1% late cases.
+**Mitigation:** Preserve manual UAT for delivery; add focused component/API-state tests if the dashboard evolves.
 
-**Mitigation:** Prefer recall-oriented technical metrics for critical cases, report precision/recall/F1 or confusion by risk band, and avoid using accuracy alone.
+### C-003: No CI pipeline
 
-### C-004: Regional bias
+Backend tests and frontend builds depend on local execution before delivery.
 
-Planning analysis flags possible under-representation of Norte/Nordeste.
+**Evidence:** no workflow/pipeline configuration is versioned; the limitation is disclosed in `README.md`.
 
-**Mitigation:** Report performance and fallback frequency by region/state where possible; avoid recommendations that punish customers in underrepresented regions.
+**Mitigation:** Run both documented gates before each push; add CI if development continues beyond the academic delivery.
 
-### C-005: License confirmation
+### C-004: Dependency resolution is only partially pinned
 
-The project documentation requires the dataset license to be declared and confirmed.
+scikit-learn and frontend packages are reproducible at the lock level, but several Python dependencies use open lower bounds. A fresh install can select newer transitive versions and currently emits Joblib/NumPy deprecation warnings.
 
-**Mitigation:** Confirm official Kaggle license before final report and cite the source.
+**Evidence:** `backend/requirements.txt`, `requirements-ml.txt`; the verified suite passes despite the warnings.
 
-## Code Concerns
+**Mitigation:** Produce a tested constraints/lock file for future maintenance while retaining the exact scikit-learn version required by serialized models.
 
-### C-006: Frontend is static
+### C-005: Free-tier cold start and resource limits
 
-Buttons and form do not yet have state management or API calls.
+The Render backend can sleep after inactivity and has constrained CPU/memory. Public health validation on 2026-07-13 observed a cold start of approximately 42 seconds.
 
-**Mitigation:** Introduce minimal state, validation and service client in focused tasks.
+**Evidence:** `render.yaml`, frontend warm-up logic and deployment notes in `README.md`.
 
-### C-007: No backend/test setup
+**Mitigation:** Poll health with an explicit warming state, classify sequentially and use a paid instance for a time-critical demo if necessary.
 
-There is no API, agent implementation or automated test suite.
+### C-006: Build cost and artifact freshness are coupled
 
-**Mitigation:** Add backend foundation with tests as part of the first implementation milestone.
+Prepared data and the calibrated model are generated during the Docker build. Changes to code, dependencies or dataset can invalidate the relevant layers and retrain the model; unchanged inputs may reuse Docker cache.
 
-### C-008: Generated data artifacts can become stale
+**Evidence:** `backend/Dockerfile`; no backend runtime volume exists in `docker-compose.yml`.
 
-Precomputed features may drift from raw CSVs.
+**Mitigation:** Keep preparation/training reproducible, review build logs and force a clean rebuild when deliberately validating artifact freshness.
 
-**Mitigation:** Provide reproducible data prep command and document artifact generation.
+## Mitigated Historical Concerns
+
+- Temporal leakage: delivery/review/final-status fields are excluded from model inputs and tested.
+- Sparse groups: the historical hierarchy exposes fallback/sample/confidence; the model removes segment-size fallback from the score.
+- Class imbalance: reports prioritize recall/precision rather than accuracy.
+- Static frontend/no backend/no tests: superseded by the implemented dashboard, FastAPI service and 101-test backend suite.
+- LLM unreliability: strict structured output, intent matching and deterministic fallback cover provider and quota failures.
+- Dataset license: source and CC BY-NC-SA 4.0 license are declared in the project report.

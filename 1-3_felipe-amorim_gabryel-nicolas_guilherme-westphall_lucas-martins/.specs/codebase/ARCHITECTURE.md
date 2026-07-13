@@ -1,100 +1,76 @@
 # Architecture
 
-**Pattern:** Layered agent → API → product, fed by an offline data-prep step, packaged with Docker Compose.
+**Analyzed:** 2026-07-13
+**Pattern:** Layered agent -> API -> product, backed by an offline data/model build.
 
 ## High-Level Structure
 
 ```mermaid
 graph TD
-    C[Olist CSV dataset] --> D[data_prep offline]
-    D --> A[prepared_orders.jsonl]
-    A --> R[HistoricalRiskTool]
-    R --> AG[DelayAgent]
-    L[OpenAI-compatible LLM] --> AG
-    AG --> API[FastAPI /predict-delay]
-    API --> FE[React dashboard]
-    FE -->|/api proxy| NG[Nginx]
-    NG --> API
+    CSV[Olist CSV dataset] --> PREP[Offline data preparation]
+    PREP --> DATA[prepared_orders.jsonl]
+    DATA --> HIST[HistoricalRiskTool]
+    DATA --> TRAIN[Calibrated model training]
+    TRAIN --> MODEL[model.joblib]
+    HIST --> MRT[ModelRiskTool evidence and fallback]
+    MODEL --> MRT
+    MRT --> AGENT[DelayAgent]
+    LLM[Gemini structured response] --> AGENT
+    AGENT --> API[FastAPI]
+    API --> UI[React dashboard]
+    EVAL[Offline evaluation] --> MLFLOW[Optional MLflow]
 ```
 
-## Identified Patterns
+## Runtime Prediction Flow
 
-### Operational React Dashboard
+1. The dashboard validates an order and sends `POST /predict-delay`.
+2. Pydantic validates route and numeric inputs.
+3. `ModelRiskTool` obtains traceable historical evidence and, when `MODEL_PATH` loads successfully, replaces the risk score with the calibrated probability.
+4. Deterministic output policy derives a safe explanation, action intent and recommended action.
+5. The LLM may rewrite the two visible fields under a strict JSON Schema. Its action is accepted only when `action_intent` matches the deterministic policy.
+6. Missing configuration, provider errors, quota exhaustion, malformed output or intent mismatch degrade to deterministic text.
+7. The API returns evidence, guardrails, latency and optional token usage; the dashboard aggregates session-only observability.
 
-**Location:** `frontend/src/App.jsx`, `frontend/src/api.js`
-**Purpose:** Tower-of-control product where an operator queues orders and classifies delay risk.
-**Implementation:** The `App` component manages a local order queue and form; selected orders are POSTed to `/api/predict-delay` via `api.js`, and the response drives risk badges, an explanation/action panel and fallback/error states.
-**Example:** A submitted order returns `risk_level`, `explanation`, `recommended_action`, `evidence` and `guardrails`, rendered inline.
+## Main Components
 
-### Layered Delay Agent (backend)
+### Offline data and model build
 
-**Location:** `backend/app/`
-**Purpose:** Turn an order into a traceable, explainable delay-risk prediction with graceful degradation.
-**Implementation:** `api.py` (FastAPI) validates input and injects a `DelayAgent`; the agent queries `HistoricalRiskTool` (deterministic segment lookup), applies output guardrails (`explanation.py`), then rewrites the explanation with an optional LLM (`llm.py`), falling back to deterministic text. `schemas.py` holds the Pydantic contracts and input guardrails.
-**Example:** With no `LLM_API_KEY` the agent still answers, appending the `llm_unconfigured` guardrail and using the deterministic explanation.
+**Location:** `backend/app/data_prep.py`, `prepare_data.py`, `feature_encoding.py`, `train_model.py`.
 
-### Offline Feature Preparation
+The Docker builder reads the raw CSVs, creates 96,470 labeled order records and trains `model.joblib`. Both artifacts are copied into the final API image; runtime does not require raw CSVs or persistent disk.
 
-**Location:** `backend/app/data_prep.py`, `backend/app/prepare_data.py`
-**Purpose:** Derive per-order features and the `delayed` target from raw Olist CSVs without leakage.
-**Implementation:** Only delivered orders get a target; future-only fields (actual delivery dates, final status, reviews) are excluded. The artifact `prepared_orders.jsonl` is built once at startup and persisted in a Docker volume.
+### Risk layer
 
-### Offline Evaluation
+**Location:** `backend/app/risk_tool.py`, `model_risk_tool.py`.
 
-**Location:** `backend/app/evaluate.py`
-**Purpose:** Grade the risk baseline against known labels for the report (DELAY-09).
-**Implementation:** Leave-one-out over the prepared orders, reusing the risk tool's hierarchy/thresholds via a precomputed segment index; reports calibration by band, recall/precision for the alarm bands, fallback rate and a per-state breakdown.
+The historical tool provides segment, sample and explanatory factors. The model tool preserves that evidence while using the calibrated classifier for the production score. Missing or corrupt model artifacts fall back to historical scoring behind the same method contract.
 
-### CSS-Only Design System
+### Agent and guardrails
 
-**Location:** `frontend/src/styles.css`
-**Purpose:** Define spacing, typography, buttons, cards, tables and responsive behavior without a component library.
-**Implementation:** CSS classes such as `.app-shell`, `.topbar`, `.summary-grid`, `.workspace`, `.button`, `.metric-card`.
-**Example:** The layout switches from sidebar/table grid to single-column under `920px`.
+**Location:** `backend/app/agent.py`, `explanation.py`, `llm.py`, `schemas.py`.
 
-### Project Direction Document
+Risk computation is deterministic/model-backed; the LLM is limited to wording. Structured output and intent compatibility prevent it from changing the safe operational policy.
 
-**Location:** `README.md`
-**Purpose:** Seed the final project report and explain the initial problem framing.
-**Implementation:** Markdown document with problem, stakeholders, business metrics, technical metric and MVP scope.
-**Example:** The document states the MVP should classify whether an order is likely to delay and return a simple explanation.
+### API and observability
 
-## Data Flow
+**Location:** `backend/app/api.py`, `health.py`.
 
-### Prediction Flow (implemented)
+FastAPI exposes health and prediction endpoints, restricts CORS when `FRONTEND_ORIGIN` is set and emits JSON logs with latency, guardrails, model and tokens.
 
-```mermaid
-graph LR
-    A[Operator enters/selects order] --> B[Frontend validation]
-    B --> C[POST /api/predict-delay]
-    C --> D[Input guardrails - Pydantic]
-    D --> E[DelayAgent]
-    E --> F[HistoricalRiskTool]
-    F --> G[Risk score + evidence]
-    G --> H[Output guardrails]
-    H --> I[LLM explanation or deterministic fallback]
-    I --> J[Dashboard result]
-    C --> K[Logs: latency + event_type + guardrails]
-```
+### Operational dashboard
 
-## Code Organization
+**Location:** `frontend/src/App.jsx`, `api.js`, `styles.css`.
 
-**Approach:** Project folder by deliverable.
+The UI keeps a browser-local order queue, classifies selected items sequentially, presents evidence/fallback states and aggregates classified orders, high risk, average latency, guardrails and LLM tokens for the current session.
 
-**Structure:**
+### Evaluation and tracking
 
-- `readme.md`: course-level final project instructions.
-- `trilhas.md`: available tracks.
-- `README.md`: problem definition for Trilha 1.3.
-- `dataset/`: Olist CSV files.
-- `backend/`: FastAPI service, agent, risk tool, data prep, evaluation and tests.
-- `frontend/`: Vite React dashboard + Nginx image.
-- `docker-compose.yml`: two-service runtime (backend + frontend).
-- `.specs/`: SDD documentation.
+**Location:** `backend/app/evaluate.py`, `mlflow_tracking.py`, `backend/data/eval_*.json`.
 
-**Module boundaries:**
+The historical baseline uses leave-one-out scoring; the model uses out-of-fold probabilities. Results include alarm precision/recall, calibration bands, fallback and per-state recall. MLflow logging is optional.
 
-- Frontend is isolated under `frontend` (React product + Nginx image).
-- Backend/agent lives under `backend/app`; the API is the only entry point into the agent.
-- Dataset is read-only source material under `dataset`; derived features are generated into `backend/data` (gitignored, Docker volume).
-- Docker Compose at the project root wires the two services.
+## Deployment
+
+- Local: Compose builds the API and Nginx frontend images; no backend runtime volume is declared.
+- Production: `render.yaml` provisions a Docker Web Service and a Static Site.
+- The free API service may sleep after inactivity, so the frontend polls health for up to approximately 90 seconds before declaring it unavailable.

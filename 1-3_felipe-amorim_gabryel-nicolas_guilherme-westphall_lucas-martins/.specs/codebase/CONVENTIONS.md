@@ -1,54 +1,37 @@
 # Code Conventions
 
-## Naming Conventions
+**Analyzed:** 2026-07-13
 
-**Files:**
+## Naming
 
-- React entry files use standard Vite names: `main.jsx`, `App.jsx`.
-- CSS uses a single global stylesheet: `styles.css`.
-- Dataset files keep original Olist names, such as `olist_orders_dataset.csv`.
+- Python modules and functions use `snake_case`; classes and Pydantic models use `PascalCase`.
+- Private Python helpers use a leading underscore, for example `_build_prompt` and `_safe_evidence`.
+- React components use `PascalCase`; functions, hooks state and local constants use `camelCase`.
+- API payload properties use `snake_case`, matching the backend contract and Olist terminology.
+- Tests use `test_<behavior>` names under `backend/tests/test_<module>.py`.
 
-**Functions/Components:**
+## Backend Organization
 
-- React component names use PascalCase, example: `App`.
-- No helper functions are present yet.
+- Each module owns one concern: schema, preparation, feature encoding, scoring, explanation policy, LLM boundary, orchestration or HTTP API.
+- Imports follow standard library, third-party and local application groups.
+- Pydantic models define public contracts and validation; frozen dataclasses represent internal results.
+- Optional integrations are isolated behind narrow boundaries: MLflow calls no-op when disabled, and model/LLM failures have deterministic fallbacks.
+- Errors returned by the API are friendly and do not expose raw stack traces; internal failures are logged with structured event metadata.
 
-**Variables:**
+## Frontend Organization
 
-- JavaScript constants use camelCase, example: `orders`.
-- Object properties use camelCase, examples: `promisedDate`, `risk`, `status`.
+- `App.jsx` owns the dashboard state and presentational helper components; `api.js` owns HTTP and warm-up behavior.
+- Immutable state updates use functional `setState` calls and array mapping.
+- Formatting and payload conversion remain small pure helpers near the bottom of `App.jsx`.
+- Styling uses semantic class names in one global stylesheet and responsive media queries, without a component library.
 
-**Constants:**
+## Tests and Documentation
 
-- Static UI data is declared as `const` near the top of `App.jsx`.
+- Backend tests rely on isolated fixtures, temporary paths and monkeypatching; provider calls are mocked.
+- Test modules mirror application modules.
+- Project decisions and task traceability live under `.specs`; operational/report documentation lives in the project `README.md` and `backend/README.md`.
 
-## Code Organization
+## Known Variations
 
-**Import/Dependency Declaration:**
-
-- `main.jsx` imports React, ReactDOM, `App.jsx`, then CSS.
-- `vite.config.js` imports `defineConfig` and plugin, then exports config.
-
-**File Structure:**
-
-- `App.jsx` currently combines static data and all UI markup in one file.
-- `styles.css` defines global reset first, then page, components, table and responsive rules.
-
-## Type Safety/Documentation
-
-**Approach:** No TypeScript, JSDoc or runtime schemas in the current frontend.
-
-## Error Handling
-
-**Pattern:** Not implemented yet. Buttons and forms have no event handlers.
-
-## Comments/Documentation
-
-**Style:** Current code has no inline comments. Project context is documented in Markdown.
-
-## Implications for New Work
-
-- Keep React components simple and local unless repeated UI patterns emerge.
-- Prefer extracting API/client logic only when a real API is added.
-- Introduce backend validation through explicit schemas rather than ad hoc checks.
-- Keep dataset-derived artifacts separate from raw CSV files.
+- Frontend source and deterministic Portuguese messages mostly omit accents, following the established project style.
+- Python dependency files use a mix of exact and lower-bound versions; scikit-learn is exact because serialized models require version compatibility.

@@ -1,43 +1,46 @@
 # Tech Stack
 
-**Analyzed:** 2026-07-12
+**Analyzed:** 2026-07-13
 
 ## Core
 
-- Framework: Vite 6.0.5 for frontend build; FastAPI for the backend HTTP service.
-- Language: JavaScript/JSX for the frontend; Python 3.11+ for the backend/agent.
-- Runtime: Node.js for frontend scripts; browser runtime for product UI; Uvicorn/ASGI for the API.
-- Package manager: npm (frontend, `package-lock.json`); pip + `requirements.txt`/`pyproject.toml` (backend).
+- Frontend: React 19 with Vite 6, JavaScript/JSX and npm (`package-lock.json`).
+- Backend: Python 3.12, FastAPI, Pydantic v2 and Uvicorn.
+- Packaging: Docker multi-stage builds, Docker Compose locally and Render Blueprint in production.
 
 ## Frontend
 
-- UI Framework: React 19.0.0.
-- Styling: Plain CSS in `frontend/src/styles.css`.
-- State Management: Static local constants only; no state library yet.
-- Form Handling: Native HTML inputs; no form library yet.
+- UI: operational delay-risk dashboard in `frontend/src/App.jsx`.
+- Styling: global plain CSS in `frontend/src/styles.css`.
+- State: React `useState`, `useMemo` and `useEffect`; no external state library.
+- API client: native `fetch` wrapper in `frontend/src/api.js` with cold-start polling.
+- Production delivery: Render Static Site; the Docker development image serves the same build through Nginx.
 
-## Backend
+## Backend and Agent
 
-- API Style: REST over HTTP (FastAPI), endpoints `GET /health` and `POST /predict-delay`.
-- Validation: Pydantic v2 schemas (`OrderInput`/`RiskEvidence`/`DelayPrediction`) with input guardrails.
-- Agent layer: `DelayAgent` orchestrates a deterministic historical risk tool, an optional OpenAI-compatible LLM explanation, fallback and telemetry.
-- Data: no transactional database. Features are prepared offline from the Olist CSVs into `backend/data/prepared_orders.jsonl`, loaded in memory at startup.
-- Authentication: Not implemented (out of scope for the MVP).
+- API: REST endpoints `GET /health` and `POST /predict-delay`.
+- Validation: Pydantic schemas and friendly request-validation responses.
+- Orchestration: `DelayAgent` combines risk scoring, output guardrails, structured LLM text and deterministic fallback.
+- Historical scorer: `HistoricalRiskTool`, using a progressive segment fallback hierarchy.
+- Model scorer: scikit-learn `HistGradientBoostingClassifier` wrapped by isotonic `CalibratedClassifierCV` and served through `ModelRiskTool`.
+- LLM: Gemini 2.5 Flash through an OpenAI-compatible HTTP contract, strict JSON Schema output and token telemetry.
+- Data: Olist CSVs are transformed offline into `prepared_orders.jsonl`; no transactional database.
+
+## ML and Experimentation
+
+- Training/serving: scikit-learn 1.9.0 and Joblib.
+- Evaluation: leave-one-out historical baseline and out-of-fold model evaluation.
+- Tracking: optional MLflow 3.14+ server and model registry through the Compose `mlflow` profile.
+- Evidence: committed evaluation JSON and charts under `backend/data/` and `assets/`.
 
 ## Testing
 
-- Unit/integration: pytest, configured in `backend/pyproject.toml`; 61 tests under `backend/tests`.
-- E2E: Not configured; Docker smoke (health, Nginx proxy, frontend, prediction) covered manually.
-- Gates: `cd backend && ./.venv/bin/pytest` (backend); `npm run build` inside `frontend`.
+- Backend: pytest, 101 tests covering schemas, data preparation, scoring, model training/evaluation, MLflow, agent, LLM and API.
+- Frontend: production build gate with `npm run build`; no component-test framework.
+- E2E/CI: no automated browser suite and no CI pipeline; deployment smoke and UI behavior are validated manually.
 
 ## External Services
 
-- Dataset: Olist Brazilian E-Commerce public dataset in local CSVs.
-- LLM provider: OpenAI-compatible HTTP client scaffolded; concrete model/provider configured by `LLM_API_KEY`/`OPENAI_API_KEY`, `LLM_MODEL` and `LLM_BASE_URL`.
-- Deployment: Docker + Docker Compose (backend image + Nginx-served frontend image); one-command local run.
-
-## Development Tools
-
-- Build tool: Vite.
-- React plugin: `@vitejs/plugin-react`.
-- Documentation: Markdown specs and project README.
+- Data source: Olist Brazilian E-Commerce dataset stored locally.
+- LLM provider: Google Gemini OpenAI-compatible endpoint, configured by environment variables.
+- Hosting: Render Web Service for the API and Render Static Site for the dashboard.

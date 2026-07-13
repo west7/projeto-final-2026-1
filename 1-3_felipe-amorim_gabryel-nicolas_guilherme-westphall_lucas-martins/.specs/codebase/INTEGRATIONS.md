@@ -1,42 +1,48 @@
 # Integrations
 
-**Analyzed:** 2026-07-09
+**Analyzed:** 2026-07-13
 
 ## Current Integrations
 
-| System | Method | Status | Notes |
+| System | Method | Status | Implementation |
 | --- | --- | --- | --- |
-| Olist dataset | Local CSV files | Present | Raw source files in `dataset`. |
-| React/Vite | npm dependencies | Present | Dashboard builds from frontend package. |
+| Olist dataset | Local CSV files | Active | `dataset/` -> `app.prepare_data` -> prepared JSONL |
+| Calibrated model | Local Joblib artifact | Active | Built by `app.train_model`, loaded by `ModelRiskTool` |
+| Gemini 2.5 Flash | OpenAI-compatible HTTPS | Optional/primary text path | `backend/app/llm.py` |
+| Agent API | REST/JSON | Active | FastAPI `GET /health`, `POST /predict-delay` |
+| Dashboard | REST/JSON | Active | `frontend/src/api.js` calls the configured API base |
+| MLflow | HTTP tracking and registry | Optional | Compose profile plus `mlflow_tracking.py` |
+| Render | Docker Web Service + Static Site | Active | `render.yaml` |
 
-## Planned Integrations
+## Prediction Contract
 
-| System | Method | Status | Notes |
-| --- | --- | --- | --- |
-| Agent API | REST over HTTP | Planned | Frontend will call endpoint to classify selected orders. |
-| LLM provider | API call | Planned/primary | Agent should use LLM for response/action text; deterministic template is fallback when provider is unavailable or unconfigured. |
-| Docker | Container runtime | Planned | Required for deployable/reproducible delivery. |
-| Hosting | Public deployment | Planned | Target not selected. |
+`POST /predict-delay` accepts route, order timing and optional commercial/payment features. It returns:
 
-## Data Contracts
+- score, risk band and confidence;
+- traceable historical evidence and fallback state;
+- separate explanation and recommended action;
+- guardrail events and end-to-end latency;
+- LLM model and token counts when the provider path succeeds.
 
-### Planned `POST /predict-delay`
+The frontend uses the same contract in local proxy mode and direct production API mode.
 
-Input should include route, timing, item/payment/product aggregates or enough raw fields to derive them.
+## Configuration and Authentication
 
-Output should include:
+- LLM: `LLM_API_KEY`/`OPENAI_API_KEY`, model, base URL, timeout and reasoning effort.
+- Browser access: `FRONTEND_ORIGIN` configures the single allowed CORS origin in production.
+- Model serving: `PREPARED_FEATURES_PATH` and optional `MODEL_PATH`.
+- MLflow: `MLFLOW_TRACKING_URI`; calls are disabled when it is absent.
+- The product has no end-user authentication or transactional database by explicit MVP scope.
 
-- `risk_level`: low, medium, high.
-- `risk_score`: numeric 0-1 or percentage.
-- `confidence`: high, medium, low.
-- `evidence`: historical segments used and sample sizes.
-- `explanation`: short operator-readable reason.
-- `recommended_action`: action for logistics/attendance.
-- `fallback_used`: boolean.
-- `latency_ms`: request duration.
-- LLM telemetry: provider/model, fallback event and estimated cost/tokens when available.
+## Failure Behavior
 
-## Security/Privacy Notes
+- Missing/corrupt model or missing ML dependency -> historical scorer.
+- Missing/unavailable/rate-limited LLM or invalid structured response -> deterministic explanation and action.
+- Sleeping Render backend -> frontend health polling and retry state.
+- Missing prepared data at API startup -> friendly service-unavailable response.
 
-- Olist IDs are pseudonymous, but project should avoid exposing raw customer identifiers unnecessarily.
-- Inputs should reject abusive or unrelated text because the system is scoped to logistics delay prediction.
+## Security and Privacy
+
+- Secrets belong in ignored `.env` files or Render secret environment variables.
+- Only structured order fields reach the LLM prompt; there is no free-text prompt input.
+- Olist identifiers are pseudonymous, and the API does not add customer personal data.
